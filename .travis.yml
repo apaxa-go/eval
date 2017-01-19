@@ -3,6 +3,7 @@ os:
   - linux
   - osx
 sudo: false
+
 go:
   - 1.x
   - 1.5
