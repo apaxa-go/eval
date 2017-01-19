@@ -12,6 +12,8 @@ import (
 
 type DataKind int
 
+// TODO assign and convert to interface
+
 const (
 	Nil          DataKind = iota
 	Regular               = iota
