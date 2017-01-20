@@ -8,9 +8,12 @@ go:
   - 1.6.x
   - 1.7.x
   - master
+env:
+  - GOARCH=amd64
+  - GOARCH=386
 matrix:
-  include:
-    - os: linux
+  exclude:
+    - os: osx
       env: GOARCH=386
 before_install:
   - go get github.com/mattn/goveralls
