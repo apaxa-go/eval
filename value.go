@@ -10,10 +10,10 @@ import (
 type Kind int
 
 const (
-	KindData    Kind = iota
-	Type             = iota
-	BuiltInFunc      = iota
-	Package          = iota
+	KindData Kind = iota
+	Type
+	BuiltInFunc
+	Package
 )
 
 type Value interface {
@@ -44,10 +44,25 @@ func (x typeVal) DeepType() string      { return "type" }
 func (builtInFuncVal) DeepType() string { return "built-in function" }
 func (packageVal) DeepType() string     { return "package" }
 
-func (x dataVal) String() string        { return x.Data().DeepString() }
-func (x typeVal) String() string        { return fmt.Sprintf("type value %v", x.v.String()) }
+func (x dataVal) String() string { return x.Data().DeepString() }
+func (x typeVal) String() string {
+	var v string
+	if x.v == nil {
+		v = "nil"
+	} else {
+		v = x.v.String()
+	}
+	return fmt.Sprint("type value " + v)
+}
 func (x builtInFuncVal) String() string { return fmt.Sprintf("built-in function value %v", string(x)) }
-func (x packageVal) String() string     { return fmt.Sprintf("package (%v)", x) }
+func (x packageVal) String() string {
+	var v = "package (exports:"
+	for i := range map[string]Value(x) {
+		v += " " + i
+	}
+	v += ")"
+	return v
+}
 
 func (x dataVal) Data() Data      { return x.v }
 func (typeVal) Data() Data        { panic("") }
@@ -69,10 +84,10 @@ func (typeVal) Package() map[string]Value        { panic("") }
 func (builtInFuncVal) Package() map[string]Value { panic("") }
 func (x packageVal) Package() map[string]Value   { return map[string]Value(x) }
 
-func (dataVal) Interface() interface{}        { return nil }
+/*func (dataVal) Interface() interface{}        { return nil }
 func (typeVal) Interface() interface{}        { panic("") }
 func (builtInFuncVal) Interface() interface{} { panic("") }
-func (packageVal) Interface() interface{}     { panic("") }
+func (packageVal) Interface() interface{}     { panic("") }*/
 
 func (dataVal) implementsValue()        {}
 func (typeVal) implementsValue()        {}
@@ -80,6 +95,7 @@ func (builtInFuncVal) implementsValue() {}
 func (packageVal) implementsValue()     {}
 
 func MakeType(x reflect.Type) Value                   { return typeVal{x} }
+func MakeTypeInterface(x interface{}) Value           { return MakeType(reflect.TypeOf(x)) }
 func MakeBuiltInFunc(x string) Value                  { return builtInFuncVal(x) }
 func MakePackage(idents Identifiers) Value            { return packageVal(idents) } // keys in idents must not have dots in names
 func MakeData(x Data) Value                           { return dataVal{x} }

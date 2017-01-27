@@ -146,7 +146,7 @@ func builtInMake(t reflect.Type, n, m int) (r Value, err *intError) {
 	switch t.Kind() {
 	case reflect.Slice:
 		if n == -1 {
-			n = 0
+			return nil, callBuiltInArgsCountMismError(fn, 2, 1)
 		}
 		if m == -1 {
 			m = n
@@ -180,7 +180,7 @@ func builtInLenConstant(v constant.Value) (r Value, err *intError) {
 		return nil, invBuiltInArgError(fn, MakeUntypedConst(v))
 	}
 	l := len(constant.StringVal(v))
-	return MakeDataUntypedConst(constant.MakeInt64(int64(l))), nil
+	return MakeDataTypedConst(constanth.MustMakeTypedValue(constanth.MakeInt(l), reflecth.TypeInt())), nil
 }
 
 func builtInLen(v reflect.Value) (r Value, err *intError) {
@@ -192,7 +192,7 @@ func builtInLen(v reflect.Value) (r Value, err *intError) {
 
 	switch v.Kind() {
 	case reflect.Array:
-		rTC, _ := constanth.MakeTypedValue(constant.MakeInt64(int64(v.Len())), reflecth.TypeInt()) // no need to check ok because language spec guarantees that v.Len() fits into an int
+		rTC, _ := constanth.MakeTypedValue(constanth.MakeInt(v.Len()), reflecth.TypeInt())
 		return MakeDataTypedConst(rTC), nil
 	case reflect.Chan, reflect.Map, reflect.Slice, reflect.String:
 		return MakeDataRegularInterface(v.Len()), nil
@@ -201,7 +201,7 @@ func builtInLen(v reflect.Value) (r Value, err *intError) {
 	}
 }
 
-//BUG: Not fully following GoLang spec (always returns type int constant for string, array & pointer to array).
+//BUG: Not fully following GoLang spec (always returns typed int constant for arrays & pointers to array).
 func BuiltInLen(v Data) (r Value, err *intError) {
 	const fn = "len"
 	switch v.Kind() {
@@ -263,7 +263,7 @@ func builtInComplexConstant(realPart, imaginaryPart constant.Value) (r constant.
 
 	rC := constant.BinaryOp(realPart, token.ADD, constant.MakeImag(imaginaryPart))
 	if rC.Kind() != constant.Complex {
-		return nil, invBuiltInArgsError(fn, []Data{MakeUntypedConst(realPart), MakeUntypedConst(imaginaryPart)})
+		return nil, invBuiltInArgsError(fn, []Data{MakeUntypedConst(realPart), MakeUntypedConst(imaginaryPart)}) // unreachable?
 	}
 	return rC, nil
 }
@@ -289,6 +289,7 @@ func builtInComplexArgParse(a Data) (r float64, can32, can64 bool) {
 		var ok bool
 		r, ok = constanth.Float64Val(aTC.Untyped())
 		if !ok {
+			// looks like reachable only if typed constant is created by directly accessing private field
 			can32 = false
 			can64 = false
 		}
@@ -313,10 +314,13 @@ func BuiltInComplex(realPart, imaginaryPart Data) (r Value, err *intError) {
 		}
 		return
 	case reK == TypedConst && imK == TypedConst, reK == TypedConst && imK == UntypedConst, reK == UntypedConst && imK == TypedConst: // result is the typed constant
-		// calc result type
+		// calc result type & convert arguments to untyped constants
 		var rT reflect.Type
+		var reC, imC constant.Value
 		switch {
 		case reK == TypedConst && imK == TypedConst:
+			reC = realPart.TypedConst().Untyped()
+			imC = imaginaryPart.TypedConst().Untyped()
 			reTK := realPart.TypedConst().Type().Kind()
 			imTK := imaginaryPart.TypedConst().Type().Kind()
 			switch {
@@ -326,6 +330,8 @@ func BuiltInComplex(realPart, imaginaryPart Data) (r Value, err *intError) {
 				rT = reflecth.TypeComplex128()
 			}
 		case reK == TypedConst:
+			reC = realPart.TypedConst().Untyped()
+			imC = imaginaryPart.UntypedConst()
 			switch realPart.TypedConst().Type().Kind() {
 			case reflect.Float32:
 				rT = reflecth.TypeComplex64()
@@ -333,6 +339,8 @@ func BuiltInComplex(realPart, imaginaryPart Data) (r Value, err *intError) {
 				rT = reflecth.TypeComplex128()
 			}
 		case imK == TypedConst:
+			reC = realPart.UntypedConst()
+			imC = imaginaryPart.TypedConst().Untyped()
 			switch imaginaryPart.TypedConst().Type().Kind() {
 			case reflect.Float32:
 				rT = reflecth.TypeComplex64()
@@ -341,9 +349,14 @@ func BuiltInComplex(realPart, imaginaryPart Data) (r Value, err *intError) {
 			}
 		}
 
+		// check what result type calculated successfully
+		if rT == nil {
+			return nil, invBuiltInArgsError(fn, []Data{realPart, imaginaryPart})
+		}
+
 		// calc result value (same as for untyped)
 		var rC constant.Value
-		rC, err = builtInComplexConstant(realPart.UntypedConst(), imaginaryPart.UntypedConst())
+		rC, err = builtInComplexConstant(reC, imC)
 		if err != nil {
 			return
 		}
@@ -383,21 +396,18 @@ func builtInRealConstant(v constant.Value) (r constant.Value, err *intError) {
 	}
 	rC := constant.Real(v)
 	if rC.Kind() == constant.Unknown {
-		return nil, invBuiltInArgError(fn, MakeUntypedConst(v))
+		return nil, invBuiltInArgError(fn, MakeUntypedConst(v)) // unreachable?
 	}
 	return rC, nil
 }
 
 func builtInReal(v reflect.Value) (r Value, err *intError) {
 	const fn = "real"
-	if !v.CanInterface() {
-		return nil, invBuiltInArgError(fn, MakeRegular(v))
-	}
-	switch vI := v.Interface().(type) {
-	case complex64:
-		return MakeDataRegularInterface(real(vI)), nil
-	case complex128:
-		return MakeDataRegularInterface(real(vI)), nil
+	switch v.Kind() {
+	case reflect.Complex64:
+		return MakeDataRegularInterface(real(complex64(v.Complex()))), nil
+	case reflect.Complex128:
+		return MakeDataRegularInterface(real(v.Complex())), nil
 	default:
 		return nil, invBuiltInArgError(fn, MakeRegular(v))
 	}
@@ -423,13 +433,13 @@ func BuiltInReal(v Data) (r Value, err *intError) {
 		var rC constant.Value
 		rC, err = builtInRealConstant(vTC.Untyped())
 		if err != nil {
-			return
+			return // unreachable
 		}
 		rTC, ok := constanth.MakeTypedValue(rC, rT)
 		if ok {
 			r = MakeDataTypedConst(rTC)
 		} else {
-			err = invBuiltInArgError(fn, v)
+			err = invBuiltInArgError(fn, v) // unreachable
 		}
 		return
 	case UntypedConst:
@@ -452,21 +462,18 @@ func builtInImagConstant(v constant.Value) (r constant.Value, err *intError) {
 	}
 	rC := constant.Imag(v)
 	if rC.Kind() == constant.Unknown {
-		return nil, invBuiltInArgError(fn, MakeUntypedConst(v))
+		return nil, invBuiltInArgError(fn, MakeUntypedConst(v)) // unreachable?
 	}
 	return rC, nil
 }
 
 func builtInImag(v reflect.Value) (r Value, err *intError) {
 	const fn = "imag"
-	if !v.CanInterface() {
-		return nil, invBuiltInArgError(fn, MakeRegular(v))
-	}
-	switch vI := v.Interface().(type) {
-	case complex64:
-		return MakeDataRegularInterface(imag(vI)), nil
-	case complex128:
-		return MakeDataRegularInterface(imag(vI)), nil
+	switch v.Kind() {
+	case reflect.Complex64:
+		return MakeDataRegularInterface(imag(complex64(v.Complex()))), nil
+	case reflect.Complex128:
+		return MakeDataRegularInterface(imag(v.Complex())), nil
 	default:
 		return nil, invBuiltInArgError(fn, MakeRegular(v))
 	}
@@ -492,13 +499,13 @@ func BuiltInImag(v Data) (r Value, err *intError) {
 		var rC constant.Value
 		rC, err = builtInImagConstant(vTC.Untyped())
 		if err != nil {
-			return
+			return // unreachable
 		}
 		rTC, ok := constanth.MakeTypedValue(rC, rT)
 		if ok {
 			r = MakeDataTypedConst(rTC)
 		} else {
-			err = invBuiltInArgError(fn, v)
+			err = invBuiltInArgError(fn, v) // unreachable
 		}
 		return
 	case UntypedConst:
@@ -513,45 +520,6 @@ func BuiltInImag(v Data) (r Value, err *intError) {
 		return nil, invBuiltInArgError(fn, v)
 	}
 }
-
-//func builtInImagConstant(v constant.Value) (r Value, err *intError) {
-//	const fn = "imag"
-//	if !constanth.IsNumeric(v) {
-//		return nil, invBuiltInArgError(fn, MakeUntyped(v))
-//	}
-//	rV := constant.Imag(v)
-//	if rV.Kind() == constant.Unknown {
-//		return nil, invBuiltInArgError(fn, MakeUntyped(v))
-//	}
-//	return MakeUntyped(rV), nil
-//}
-//
-//func builtInImag(v reflect.Value) (r Value, err *intError) {
-//	const fn = "imag"
-//	if !v.CanInterface() {
-//		return nil, invBuiltInArgError(fn, MakeRegular(v))
-//	}
-//	switch vI := v.Interface().(type) {
-//	case complex64:
-//		return MakeRegularInterface(imag(vI)), nil
-//	case complex128:
-//		return MakeRegularInterface(imag(vI)), nil
-//	default:
-//		return nil, invBuiltInArgError(fn, MakeRegular(v))
-//	}
-//}
-//
-//func BuiltInImag(v Value) (r Value, err *intError) {
-//	const fn = "imag"
-//	switch v.Kind() {
-//	case UntypedConst:
-//		return builtInImagConstant(v.Untyped())
-//	case Regular:
-//		return builtInImag(v.Regular())
-//	default:
-//		return nil, invBuiltInArgError(fn, v)
-//	}
-//}
 
 func BuiltInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
 	const fn = "append"
@@ -576,8 +544,7 @@ func BuiltInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
 
 	elemT := v.Regular().Type().Elem()
 	//var aV []reflect.Value
-	switch ellipsis {
-	case true:
+	if ellipsis {
 		if len(a) != 1 {
 			return nil, callBuiltInArgsCountMismError(fn, 2, 1+len(a))
 		}
@@ -592,7 +559,7 @@ func BuiltInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
 			return nil, appendMismTypeError(reflect.SliceOf(elemT), a[0])
 		}
 		return MakeDataRegular(reflect.AppendSlice(vV, aV)), nil
-	case false:
+	} else {
 		aV := make([]reflect.Value, len(a))
 		for i := range a {
 			var ok bool
@@ -602,7 +569,5 @@ func BuiltInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
 			}
 		}
 		return MakeDataRegular(reflect.Append(vV, aV...)), nil
-	default:
-		return nil, nil // unreachable
 	}
 }

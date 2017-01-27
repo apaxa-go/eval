@@ -74,9 +74,9 @@ func compareOpWithNil(x Data, op token.Token) (r Data, err *intError) {
 	var equality bool // true if op == "=="
 	switch op {
 	case token.EQL:
-		equality = false
-	case token.NEQ:
 		equality = true
+	case token.NEQ:
+		equality = false
 	default:
 		return nil, invBinOpError(x.DeepString(), op.String(), "nil", "operator "+op.String()+" not defined on nil")
 	}
@@ -94,9 +94,9 @@ func compareOpWithUntypedBool(x Data, op token.Token, y bool) (r Data, err *intE
 	var equality bool // true if op == "=="
 	switch op {
 	case token.EQL:
-		equality = false
-	case token.NEQ:
 		equality = true
+	case token.NEQ:
+		equality = false
 	default:
 		return nil, invBinOpUnknOpError(x, op, MakeUntypedBool(y))
 	}
@@ -194,7 +194,7 @@ func CompareOp(x Data, op token.Token, y Data) (r Data, err *intError) {
 	case xK == UntypedConst && yK == UntypedConst:
 		rB, err = compareOpUntypedConst(x.UntypedConst(), op, y.UntypedConst())
 	default:
-		err = invBinOpTypesInvalError(x, op, y)
+		err = invBinOpTypesInvalError(x, op, y) // unreachable?
 	}
 	if err == nil {
 		r = untypedBoolData(rB)
@@ -220,7 +220,7 @@ func ShiftOp(x Data, op token.Token, y Data) (r Data, err *intError) {
 		var ok bool
 		yUint, ok = constanth.UintVal(yTC.Untyped())
 		if !ok {
-			return nil, invBinOpShiftCountError(x, op, y)
+			return nil, invBinOpShiftCountError(x, op, y) // can be reachable only on 32-bit arch
 		}
 	case UntypedConst:
 		var ok bool
@@ -256,7 +256,7 @@ func ShiftOp(x Data, op token.Token, y Data) (r Data, err *intError) {
 			case false:
 				rV, ok := constanth.DefaultValue(rC)
 				if !ok {
-					err = notExprError(MakeDataUntypedConst(rC))
+					err = constOverflowType(rC, constanth.DefaultType(rC))
 				} else {
 					r = MakeRegular(rV)
 				}

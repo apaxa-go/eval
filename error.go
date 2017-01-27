@@ -56,23 +56,3 @@ func (err *intError) noPos() *posError {
 	}
 	return &posError{msg: string(*err)}
 }
-
-//
-//
-//
-type upTypesT struct {
-	d   Data
-	err *intError
-}
-
-func T(d Data, err *intError) upTypesT {
-	return upTypesT{d, err}
-}
-func (u upTypesT) pos(n ast.Node) (r Value, err *posError) {
-	if u.err == nil {
-		r = MakeData(u.d)
-	} else {
-		err = u.err.pos(n)
-	}
-	return
-}

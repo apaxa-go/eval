@@ -3,6 +3,7 @@ package eval
 import (
 	"github.com/apaxa-go/helper/strconvh"
 	"go/ast"
+	"go/constant"
 	"go/token"
 	"reflect"
 )
@@ -22,6 +23,18 @@ func invAstUnsupportedError(e ast.Expr) *intError {
 func invAstSelectorError() *intError {
 	return invAstError("no field specified (Sel is nil)")
 }
+func invAstNilStructFieldsError() *intError {
+	return invAstError("nil struct's fields")
+}
+func invAstNilInterfaceMethodsError() *intError {
+	return invAstError("nil interface's methods")
+}
+func unsupportedInterfaceTypeError() *intError {
+	return newIntError("non empty interface type (with methods) declaration currently does not supported")
+}
+func invAstNonStringTagError() *intError {
+	return invAstError("tag is not of type string")
+}
 func invSelectorXError(x Value) *intError {
 	return newIntError("unable to select from " + x.DeepType())
 }
@@ -37,15 +50,16 @@ func indirectInvalError(x Value) *intError {
 func notExprError(x Value) *intError {
 	return newIntError(x.DeepType() + " is not an expression")
 }
-func syntaxMisChanTypeError() *intError {
-	return syntaxError("syntax error: missing channel element type")
-}
-func syntaxMisArrayTypeError() *intError {
-	return syntaxError("syntax error: missing array element type")
-}
-func syntaxMisVariadicTypeError() *intError {
-	return syntaxError("final argument in variadic function missing type")
-}
+
+//func syntaxMisChanTypeError() *intError {
+//	return syntaxError("syntax error: missing channel element type")
+//}
+//func syntaxMisArrayTypeError() *intError {
+//	return syntaxError("syntax error: missing array element type")
+//}
+//func syntaxMisVariadicTypeError() *intError {
+//	return syntaxError("final argument in variadic function missing type")
+//}
 func sliceInvTypeError(x Data) *intError {
 	return newIntError("cannot slice " + x.DeepString())
 }
@@ -71,7 +85,7 @@ func initInvTypeError(t reflect.Type) *intError {
 	return newIntError("invalid type for composite literal: " + t.String())
 }
 func funcInvEllipsisPos() *intError {
-	return newIntError("can only use ... with final parameter in list")
+	return newIntError("can only use ... with final input parameter")
 }
 func cannotUseAsError(dst reflect.Type, src Data, in string) *intError {
 	return newIntError("cannot use " + src.DeepString() + " as type " + dst.String() + " in " + in)
@@ -106,8 +120,8 @@ func compLitIndexOutOfBoundsError(max, i int) *intError {
 func invBinOpError(x, op, y, reason string) *intError {
 	return newIntError("invalid operation: " + x + " " + op + " " + y + " (" + reason + ")")
 }
-func invBinOpUnknOpError(x Data,op token.Token,y Data)*intError{
-	return invBinOpError(x.DeepString(),op.String(),y.DeepString(), "operator "+op.String()+" not defined on nil")
+func invBinOpUnknOpError(x Data, op token.Token, y Data) *intError {
+	return invBinOpError(x.DeepString(), op.String(), y.DeepString(), "operator "+op.String()+" not defined on nil")
 }
 func invBinOpTypesMismError(x Data, op token.Token, y Data) *intError {
 	return invBinOpError(x.DeepString(), op.String(), y.DeepString(), "mismatched types "+x.DeepType()+" and "+y.DeepType())
@@ -115,15 +129,16 @@ func invBinOpTypesMismError(x Data, op token.Token, y Data) *intError {
 func invBinOpTypesInvalError(x Data, op token.Token, y Data) *intError {
 	return invBinOpError(x.DeepString(), op.String(), y.DeepString(), "invalid types "+x.DeepType()+" and/or "+y.DeepType())
 }
-func invBinOpTypesIncompError(x Value, op token.Token, y Value) *intError {
-	return invBinOpError(x.String(), op.String(), y.String(), "incomparable types "+x.DeepType()+" and "+y.DeepType())
-}
-func invBinOpTypesUnorderError(x Value, op token.Token, y Value) *intError {
-	return invBinOpError(x.String(), op.String(), y.String(), "unordered types "+x.DeepType()+" and "+y.DeepType())
-}
-func invBinOpInvalError(x Value, op token.Token, y Value) *intError {
-	return invBinOpError(x.String(), op.String(), y.String(), "invalid operator")
-}
+
+//func invBinOpTypesIncompError(x Value, op token.Token, y Value) *intError {
+//	return invBinOpError(x.String(), op.String(), y.String(), "incomparable types "+x.DeepType()+" and "+y.DeepType())
+//}
+//func invBinOpTypesUnorderError(x Value, op token.Token, y Value) *intError {
+//	return invBinOpError(x.String(), op.String(), y.String(), "unordered types "+x.DeepType()+" and "+y.DeepType())
+//}
+//func invBinOpInvalError(x Value, op token.Token, y Value) *intError {
+//	return invBinOpError(x.String(), op.String(), y.String(), "invalid operator")
+//}
 func invBinOpShiftCountError(x Data, op token.Token, y Data) *intError {
 	return invBinOpError(x.DeepString(), op.String(), y.DeepString(), "shift count type "+y.DeepType()+", must be unsigned integer")
 }
@@ -192,9 +207,10 @@ func convertArgsCountMismError(t reflect.Type, req int, x []Data) *intError {
 func convertUnableError(t reflect.Type, x Data) *intError {
 	return newIntError("cannot convert " + x.DeepString() + " to type " + t.String())
 }
-func convertNilUnableError(t reflect.Type) *intError {
-	return newIntError("cannot convertCall nil to type " + t.String())
-}
+
+//func convertNilUnableError(t reflect.Type) *intError {
+//	return newIntError("cannot convertCall nil to type " + t.String())
+//}
 func undefIdentError(ident string) *intError {
 	return newIntError("undefined: " + ident)
 }
@@ -210,17 +226,18 @@ func invSlice3IndexOmitted() *intError {
 func invUnaryOp(x Data, op token.Token) *intError {
 	return newIntError("invalid operation: " + op.String() + " " + x.DeepType())
 }
-func invUnaryOpReason(x Value, op token.Token, reason interface{}) *intError {
-	return newIntErrorf("invalid operation: %v %v: %v", op.String(), x.DeepType(), reason)
-}
-func invUnaryReceiveError(x Value, op token.Token) *intError {
-	return invUnaryOpReason(x, op, "receive from non-chan type "+x.Type().String())
-}
+
+//func invUnaryOpReason(x Value, op token.Token, reason interface{}) *intError {
+//	return newIntErrorf("invalid operation: %v %v: %v", op.String(), x.DeepType(), reason)
+//}
+//func invUnaryReceiveError(x Value, op token.Token) *intError {
+//	return invUnaryOpReason(x, op, "receive from non-chan type "+x.Type().String())
+//}
 func selectorUndefIdentError(t reflect.Type, name string) *intError {
 	return undefIdentError(t.String() + "." + name)
 }
-func arrayBoundInvBoundError(l Data)*intError{
-	return newIntError("invalid array bound "+l.DeepString())
+func arrayBoundInvBoundError(l Data) *intError {
+	return newIntError("invalid array bound " + l.DeepString())
 }
 func arrayBoundNegError() *intError {
 	return newIntError("array bound must be non-negative")
@@ -269,4 +286,10 @@ func indexOutOfRangeError(i int) *intError {
 }
 func cmpWithNilError(x Data, op token.Token) *intError {
 	return invBinOpError(x.DeepString(), op.String(), "nil", "compare with nil is not defined on "+x.DeepType())
+}
+func invMem(x Value) *intError {
+	return newIntError("invalid memory address or nil pointer dereference (" + x.String() + " is nil)")
+}
+func constOverflowType(x constant.Value, t reflect.Type) *intError {
+	return newIntError("constant " + x.ExactString() + " overflow " + t.String())
 }

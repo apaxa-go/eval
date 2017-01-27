@@ -15,11 +15,11 @@ type DataKind int
 // TODO assign and convert to interface
 
 const (
-	Nil          DataKind = iota
-	Regular               = iota
-	UntypedConst          = iota
-	TypedConst            = iota
-	UntypedBool           = iota
+	Nil DataKind = iota
+	Regular
+	UntypedConst
+	TypedConst
+	UntypedBool
 )
 
 func (k DataKind) String() string {
@@ -27,7 +27,7 @@ func (k DataKind) String() string {
 	case Nil:
 		return "nil"
 	case Regular:
-		return "regular"
+		return "regular variable"
 	case TypedConst:
 		return "typed constant"
 	case UntypedConst:
@@ -57,7 +57,7 @@ type Data interface {
 	MustConvert(t reflect.Type) Data
 	Convert(t reflect.Type) (r Data, ok bool)
 
-	AsInt() (r int, ok bool) // returns int for Regular of [u]int* kinds (if feets in int) and for constants (if it can be represent exactly; type of const does not mean anything)
+	AsInt() (r int, ok bool) // returns int for Regular of [u]int* kinds (if feats in int) and for constants (if it can be represent exactly; type of const does not mean anything)
 	//ConvertToUint() (r uint, ok bool)
 
 	//String() string
@@ -145,16 +145,15 @@ func (nilData) AssignableTo(t reflect.Type) bool {
 	}
 	return false
 }
-func (nilData) MustAssign(t reflect.Type) reflect.Value {
-	switch t.Kind() {
-	case reflect.Slice, reflect.Ptr, reflect.Func, reflect.Interface, reflect.Map, reflect.Chan:
-		return reflect.New(t).Elem()
+func (x nilData) MustAssign(t reflect.Type) reflect.Value {
+	r, ok := x.Assign(t)
+	if ok {
+		return r
 	}
 	panic("unable to assign nil to " + t.String())
 }
-func (nilData) Assign(t reflect.Type) (r reflect.Value, ok bool) {
-	switch t.Kind() {
-	case reflect.Slice, reflect.Ptr, reflect.Func, reflect.Interface, reflect.Map, reflect.Chan:
+func (x nilData) Assign(t reflect.Type) (r reflect.Value, ok bool) {
+	if x.AssignableTo(t) {
 		r = reflect.New(t).Elem()
 		ok = true
 	}
@@ -216,7 +215,7 @@ func (x typedConstData) MustConvert(t reflect.Type) Data {
 }
 
 //
-//	untypedData assign & convert
+//	untypedConstData assign & convert
 //
 func (x untypedConstData) Assign(t reflect.Type) (r reflect.Value, ok bool) {
 	return constanth.Assign(x.UntypedConst(), t)
@@ -249,7 +248,7 @@ func (x untypedBoolData) AssignableTo(t reflect.Type) bool { return t.Kind() == 
 func (x untypedBoolData) MustAssign(t reflect.Type) reflect.Value {
 	r, ok := x.Assign(t)
 	if !ok {
-		panic("unable to assign "+x.DeepString()+" to type "+t.String())
+		panic("unable to assign " + x.DeepString() + " to type " + t.String())
 	}
 	return r
 }

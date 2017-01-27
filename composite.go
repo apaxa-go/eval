@@ -1,11 +1,11 @@
 package eval
 
 import (
-	"github.com/apaxa-go/helper/strconvh"
 	"reflect"
 )
 
 func assign(dst reflect.Value, src Data) (err *intError) {
+	// TODO change to use reflecth.Set and/or reflecth.MakeSettable here and/or in other places?
 	if !dst.CanSet() {
 		return assignDstUnsettableError(MakeRegular(dst))
 	}
@@ -15,9 +15,6 @@ func assign(dst reflect.Value, src Data) (err *intError) {
 		return assignTypesMismError(dst.Type(), src)
 	}
 
-	if !newValue.Type().AssignableTo(dst.Type()) {
-		return assignTypesMismError(dst.Type(), src)
-	}
 	dst.Set(newValue)
 	return nil
 }
@@ -53,9 +50,6 @@ func compositeLitStructOrdered(t reflect.Type, elts []Data) (r Value, err *intEr
 
 	for i := range elts {
 		fV := rV.Field(i)
-		if !fV.IsValid() {
-			return nil, compLitUnknFieldError(rV, strconvh.FormatInt(i))
-		}
 		err = assign(fV, elts[i])
 		if err != nil {
 			return
@@ -94,9 +88,6 @@ func compositeLitArrayLike(t reflect.Type, elts map[int]Data) (r Value, err *int
 	// Fill result
 	for i := range elts {
 		iV := rV.Index(i)
-		if !iV.IsValid() {
-			return nil, compLitUnknFieldError(rV, strconvh.FormatInt(i))
-		}
 		err = assign(iV, elts[i])
 		if err != nil {
 			return
@@ -111,7 +102,7 @@ func compositeLitMap(t reflect.Type, elts map[Data]Data) (r Value, err *intError
 		return nil, compLitInvTypeError(t)
 	}
 
-	rV := reflect.New(t).Elem()
+	rV := reflect.MakeMap(t) // reflect.New(t).Elem()
 	kV := reflect.New(t.Key()).Elem()
 	vV := reflect.New(t.Elem()).Elem()
 	for k, v := range elts {

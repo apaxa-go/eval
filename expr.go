@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/apaxa-go/helper/goh/asth"
 	"go/ast"
+	"go/token"
 	"reflect"
 	"strings"
 )
@@ -72,35 +73,7 @@ func (idents Identifiers) normalize() error {
 	return nil
 }
 
-func funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed bool, idents Identifiers) (r []reflect.Type, variadic bool, err *posError) {
-	if fields == nil || len(fields.List) == 0 {
-		return
-	}
-	r = make([]reflect.Type, len(fields.List))
-	for i := range fields.List {
-		// check for variadic
-		if _, ellipsis := fields.List[i].Type.(*ast.Ellipsis); ellipsis {
-			if !ellipsisAlowed || i != len(fields.List)-1 {
-				return nil, false, funcInvEllipsisPos().pos(fields.List[i])
-			}
-			variadic = true
-		}
-		// calc type
-		var v Value
-		v, err = astExpr(fields.List[i].Type, idents)
-		if err != nil {
-			return nil, false, err
-		}
-
-		if v.Kind() != Type {
-			return nil, false, notTypeError(v).pos(fields.List[i])
-		}
-		r[i] = v.Type()
-	}
-	return
-}
-
-/*func Expr(e ast.Expr, idents Identifiers, fset *token.FileSet) (r Value, err error) {
+func Expr(e ast.Expr, idents Identifiers, fset *token.FileSet) (r Value, err error) {
 	err = idents.normalize()
 	if err != nil {
 		return
@@ -109,7 +82,7 @@ func funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed bool, idents Identi
 	r, posErr = astExpr(e, idents)
 	err = posErr.error(fset)
 	return
-}*/
+}
 
 /*func ExprRegular(e ast.Expr, idents IdentifiersRegular, fset *token.FileSet) (r reflect.Value, err error) {
 	rV, err := Expr(e, idents.Identifiers(), fset)
