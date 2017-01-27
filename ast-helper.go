@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed bool, idents Identifiers) (r []reflect.Type, variadic bool, err *posError) {
+func (expr *Expression)funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed bool, idents Identifiers) (r []reflect.Type, variadic bool, err *posError) {
 	if fields == nil || len(fields.List) == 0 {
 		return
 	}
@@ -19,7 +19,7 @@ func funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed bool, idents Identi
 			variadic = true
 		}
 		// calc type
-		r[i], err = astExprAsType(fields.List[i].Type, idents)
+		r[i], err = expr.astExprAsType(fields.List[i].Type, idents)
 		if err != nil {
 			return nil, false, err
 		}
