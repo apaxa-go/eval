@@ -70,6 +70,26 @@ func (idents Identifiers) normalize() error {
 
 	return nil
 }
+
+func (idents Identifiers) makeAddressable() {
+	for ident, v := range idents {
+		if v.Kind() != KindData {
+			continue
+		}
+		if v.Data().Kind() != Regular {
+			continue
+		}
+		oldV := v.Data().Regular()
+		if oldV.CanAddr() {
+			continue
+		}
+
+		newV := reflect.New(oldV.Type()).Elem()
+		newV.Set(oldV)
+		idents[ident] = MakeDataRegular(newV)
+	}
+}
+
 /*
 
 func Expr(e ast.Expr, idents Identifiers, fset *token.FileSet) (r Value, err error) {

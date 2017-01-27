@@ -26,7 +26,7 @@ func (s *SampleInt) Mp(x int16) int32 { return -int32(*s)*int32(x) + 1 }
 
 // Check for method extracting.
 // It is not trivial to fully check returned value, so do it separately from other tests
-func TestSelector2(t *testing.T) {
+func TestSelector(t *testing.T) {
 	type testSelectorElement struct {
 		expr string
 		vars Identifiers
@@ -81,7 +81,7 @@ func TestSelector2(t *testing.T) {
 
 // Check for getting address (&).
 // It is not trivial to fully check returned value, so do it separately from other tests
-func TestUnary2(t *testing.T) {
+func TestUnary(t *testing.T) {
 	tmp := SampleStruct{5}
 	tmp2 := []int8{6}
 	tests := []testExprElement{
@@ -180,5 +180,20 @@ func TestAstInterfaceType(t *testing.T) {
 	e := &ast.InterfaceType{}
 	if r, err := ((*Expression)(nil)).astInterfaceType(e, nil); r != nil || err == nil {
 		t.Errorf("expect %v %v, got %v %v", nil, true, r, err)
+	}
+}
+
+func TestAstSelectorExpr2(t *testing.T) {
+	expr, err := ParseString(`myStruct1{i:1}`, "github.com/apaxa-go/eval")
+	testR := MakeDataRegularInterface(myStruct1{i: 1})
+	if err != nil {
+		t.Fatal("expect no error")
+	}
+	r, err := expr.Eval(Identifiers{"myStruct1": MakeType(reflect.TypeOf(myStruct1{}))})
+	if err != nil {
+		t.Fatalf("expect no error, got %v", err)
+	}
+	if !isValuesEqual(r, testR) {
+		t.Errorf("expect %v, got %v", testR, r)
 	}
 }

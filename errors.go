@@ -293,3 +293,6 @@ func invMem(x Value) *intError {
 func constOverflowType(x constant.Value, t reflect.Type) *intError {
 	return newIntError("constant " + x.ExactString() + " overflow " + t.String())
 }
+func interfaceMethodExpr() *intError {
+	return newIntError("Method expressions for interface types currently does not supported")
+}

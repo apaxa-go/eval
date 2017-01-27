@@ -1,6 +1,8 @@
 package eval
 
 import (
+	"errors"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -10,9 +12,9 @@ import (
 const DefaultFileName = "expression"
 
 type Expression struct {
-	e    ast.Expr
-	fset *token.FileSet
-	pkg  string
+	e       ast.Expr
+	fset    *token.FileSet
+	pkgPath string
 }
 
 func Parse(filename string, src interface{}, pkg string) (r *Expression, err error) {
@@ -22,7 +24,7 @@ func Parse(filename string, src interface{}, pkg string) (r *Expression, err err
 	if err != nil {
 		return nil, err
 	}
-	r.pkg = pkg
+	r.pkgPath = pkg
 	return
 }
 
@@ -37,7 +39,13 @@ func ParseReader(src io.Reader, pkg string) (r *Expression, err error) {
 }
 
 func (e *Expression) Eval(idents Identifiers) (r Value, err error) {
-	// TODO make idents addressable
+	defer func() {
+		rec := recover()
+		if rec != nil {
+			err = errors.New(`BUG: unhandled panic"` + fmt.Sprint(rec) + `". Please report bug.`)
+		}
+	}()
+	idents.makeAddressable()
 	err = idents.normalize()
 	if err != nil {
 		return

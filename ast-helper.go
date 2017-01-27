@@ -1,11 +1,12 @@
 package eval
 
 import (
+	"github.com/apaxa-go/helper/reflecth"
 	"go/ast"
 	"reflect"
 )
 
-func (expr *Expression)funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed bool, idents Identifiers) (r []reflect.Type, variadic bool, err *posError) {
+func (expr *Expression) funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed bool, idents Identifiers) (r []reflect.Type, variadic bool, err *posError) {
 	if fields == nil || len(fields.List) == 0 {
 		return
 	}
@@ -25,6 +26,26 @@ func (expr *Expression)funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed b
 		}
 	}
 	return
+}
+
+// fieldByName is just a replacement for "x.FieldByName(field)".
+// x must be of kind reflect.Struct.
+func fieldByName(x reflect.Value, field string, pkgPath string) reflect.Value {
+	r := x.FieldByName(field)
+	if pkgPath != "" && x.Type().PkgPath() == pkgPath && r.CanAddr() {
+		r = reflecth.MakeSettable(r)
+	}
+	return r
+}
+
+// fieldByIndex is just a replacement for "x.Field(i)".
+// x must be of kind reflect.Struct.
+func fieldByIndex(x reflect.Value, i int, pkgPath string) reflect.Value {
+	r := x.Field(i)
+	if pkgPath != "" && x.Type().PkgPath() == pkgPath && r.CanAddr() {
+		r = reflecth.MakeSettable(r)
+	}
+	return r
 }
 
 //

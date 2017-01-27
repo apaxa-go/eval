@@ -5,7 +5,6 @@ import (
 )
 
 func assign(dst reflect.Value, src Data) (err *intError) {
-	// TODO change to use reflecth.Set and/or reflecth.MakeSettable here and/or in other places?
 	if !dst.CanSet() {
 		return assignDstUnsettableError(MakeRegular(dst))
 	}
@@ -19,14 +18,14 @@ func assign(dst reflect.Value, src Data) (err *intError) {
 	return nil
 }
 
-func compositeLitStructKeys(t reflect.Type, elts map[string]Data) (r Value, err *intError) {
+func compositeLitStructKeys(t reflect.Type, elts map[string]Data, pkg string) (r Value, err *intError) {
 	if t.Kind() != reflect.Struct {
 		return nil, compLitInvTypeError(t)
 	}
 	rV := reflect.New(t).Elem()
 
 	for field, value := range elts {
-		fV := rV.FieldByName(field)
+		fV := fieldByName(rV, field, pkg)
 		if !fV.IsValid() {
 			return nil, compLitUnknFieldError(rV, field)
 		}
@@ -39,7 +38,7 @@ func compositeLitStructKeys(t reflect.Type, elts map[string]Data) (r Value, err 
 	return MakeDataRegular(rV), nil
 }
 
-func compositeLitStructOrdered(t reflect.Type, elts []Data) (r Value, err *intError) {
+func compositeLitStructOrdered(t reflect.Type, elts []Data, pkg string) (r Value, err *intError) {
 	if t.Kind() != reflect.Struct {
 		return nil, compLitInvTypeError(t)
 	}
@@ -49,7 +48,7 @@ func compositeLitStructOrdered(t reflect.Type, elts []Data) (r Value, err *intEr
 	rV := reflect.New(t).Elem()
 
 	for i := range elts {
-		fV := rV.Field(i)
+		fV := fieldByIndex(rV, i, pkg)
 		err = assign(fV, elts[i])
 		if err != nil {
 			return

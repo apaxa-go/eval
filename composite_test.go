@@ -7,13 +7,13 @@ import (
 )
 
 func TestCompositeLitStructKeys(t *testing.T) {
-	if r, err := compositeLitStructKeys(reflecth.TypeBool(), nil); r != nil || err == nil {
+	if r, err := compositeLitStructKeys(reflecth.TypeBool(), nil, ""); r != nil || err == nil {
 		t.Errorf("expect %v %v, got %v %v", nil, true, r, err)
 	}
 }
 
 func TestCompositeLitStructOrdered(t *testing.T) {
-	if r, err := compositeLitStructOrdered(reflecth.TypeBool(), nil); r != nil || err == nil {
+	if r, err := compositeLitStructOrdered(reflecth.TypeBool(), nil, ""); r != nil || err == nil {
 		t.Errorf("expect %v %v, got %v %v", nil, true, r, err)
 	}
 }

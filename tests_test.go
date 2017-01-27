@@ -637,9 +637,9 @@ var testsExpr = testExprCatalog{
 			S string
 			I int
 		}{})), false},
-		{`struct{string; I int "protobuf:1"}`, nil, MakeType(reflect.TypeOf(struct {
+		{"struct{string; I int `protobuf:\"1\"`}", nil, MakeType(reflect.TypeOf(struct {
 			string
-			I int "protobuf:1"
+			I int `protobuf:"1"`
 		}{})), false},
 		{`struct{I myStruct}`, nil, nil, true},
 		{`struct{I0 int; I0 int}`, nil, nil, true},
