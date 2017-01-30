@@ -28,21 +28,23 @@ func (expr *Expression) funcTranslateArgs(fields *ast.FieldList, ellipsisAlowed 
 	return
 }
 
-// fieldByName is just a replacement for "x.FieldByName(field)".
+// fieldByName is just a replacement for "x.FieldByName(field)" with write access to private fields.
 // x must be of kind reflect.Struct.
 func fieldByName(x reflect.Value, field string, pkgPath string) reflect.Value {
 	r := x.FieldByName(field)
-	if pkgPath != "" && x.Type().PkgPath() == pkgPath && r.CanAddr() {
+	//if pkgPath != "" && x.Type().PkgPath() == pkgPath && r.CanAddr() {
+	if x.Type().PkgPath() == pkgPath && r.CanAddr() {
 		r = reflecth.MakeSettable(r)
 	}
 	return r
 }
 
-// fieldByIndex is just a replacement for "x.Field(i)".
+// fieldByIndex is just a replacement for "x.Field(i)" with write access to private fields.
 // x must be of kind reflect.Struct.
 func fieldByIndex(x reflect.Value, i int, pkgPath string) reflect.Value {
 	r := x.Field(i)
-	if pkgPath != "" && x.Type().PkgPath() == pkgPath && r.CanAddr() {
+	//if pkgPath != "" && x.Type().PkgPath() == pkgPath && r.CanAddr() {
+	if x.Type().PkgPath() == pkgPath && r.CanAddr() {
 		r = reflecth.MakeSettable(r)
 	}
 	return r

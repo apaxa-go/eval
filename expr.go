@@ -1,8 +1,6 @@
 package eval
 
 import (
-	"errors"
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -39,12 +37,12 @@ func ParseReader(src io.Reader, pkg string) (r *Expression, err error) {
 }
 
 func (e *Expression) Eval(idents Identifiers) (r Value, err error) {
-	defer func() {
-		rec := recover()
-		if rec != nil {
-			err = errors.New(`BUG: unhandled panic"` + fmt.Sprint(rec) + `". Please report bug.`)
-		}
-	}()
+	//defer func() {
+	//	rec := recover()
+	//	if rec != nil {
+	//		err = errors.New(`BUG: unhandled panic"` + fmt.Sprint(rec) + `". Please report bug.`)
+	//	}
+	//}()
 	idents.makeAddressable()
 	err = idents.normalize()
 	if err != nil {

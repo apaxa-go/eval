@@ -12,8 +12,6 @@ import (
 
 type DataKind int
 
-// TODO assign and convert to interface
-
 const (
 	Nil DataKind = iota
 	Regular
@@ -201,17 +199,37 @@ func (x typedConstData) Assign(t reflect.Type) (r reflect.Value, ok bool) {
 }
 func (x typedConstData) AssignableTo(t reflect.Type) bool { return x.TypedConst().AssignableTo(t) }
 func (x typedConstData) Convert(t reflect.Type) (r Data, ok bool) {
-	var tmp constanth.TypedValue
-	tmp, ok = x.TypedConst().Convert(t)
-	if ok {
-		r = typedConstData(tmp)
+	// Need split logic - more details in constanth.TypedValue.Convert.
+	switch t.Kind() {
+	case reflect.Interface:
+		var tmp reflect.Value
+		tmp, ok = x.Assign(t)
+		if ok {
+			r = MakeRegular(tmp)
+		}
+		return
+	default:
+		var tmp constanth.TypedValue
+		tmp, ok = x.TypedConst().Convert(t)
+		if ok {
+			r = MakeTypedConst(tmp)
+		}
+		return
 	}
-	return
 }
-func (x typedConstData) ConvertibleTo(t reflect.Type) bool       { return x.TypedConst().ConvertibleTo(t) }
+func (x typedConstData) ConvertibleTo(t reflect.Type) bool {
+	//return x.TypedConst().ConvertibleTo(t) 	// does not work for interfaces
+	_, ok := x.Convert(t)
+	return ok
+}
 func (x typedConstData) MustAssign(t reflect.Type) reflect.Value { return x.TypedConst().MustAssign(t) }
 func (x typedConstData) MustConvert(t reflect.Type) Data {
-	return typedConstData(x.TypedConst().MustConvert(t))
+	// return typedConstData(x.TypedConst().MustConvert(t))	// does not work for interfaces
+	r, ok := x.Convert(t)
+	if !ok {
+		panic("unable to convert " + x.TypedConst().String() + " to type " + t.String())
+	}
+	return r
 }
 
 //
@@ -224,27 +242,47 @@ func (x untypedConstData) AssignableTo(t reflect.Type) bool {
 	return constanth.AssignableTo(x.UntypedConst(), t)
 }
 func (x untypedConstData) Convert(t reflect.Type) (r Data, ok bool) {
-	var tmp constanth.TypedValue
-	tmp, ok = constanth.Convert(x.UntypedConst(), t)
-	if ok {
-		r = typedConstData(tmp) // untyped constant data after convertation will be typed constant data
+	// Need split logic - more details in constanth.Convert.
+	switch t.Kind() {
+	case reflect.Interface:
+		var tmp reflect.Value
+		tmp, ok = constanth.Assign(x.UntypedConst(), t)
+		if ok {
+			r = MakeRegular(tmp) // untyped constant data after convertation to interface will be regular data
+		}
+		return
+	default:
+		var tmp constanth.TypedValue
+		tmp, ok = constanth.Convert(x.UntypedConst(), t)
+		if ok {
+			r = MakeTypedConst(tmp) // untyped constant data after convertation will be typed constant data
+		}
+		return
 	}
-	return
 }
 func (x untypedConstData) ConvertibleTo(t reflect.Type) bool {
-	return constanth.ConvertibleTo(x.UntypedConst(), t)
+	//return constanth.ConvertibleTo(x.UntypedConst(), t)	// does not work for interfaces
+	_, ok := x.Convert(t)
+	return ok
 }
 func (x untypedConstData) MustAssign(t reflect.Type) reflect.Value {
 	return constanth.MustAssign(x.UntypedConst(), t)
 }
 func (x untypedConstData) MustConvert(t reflect.Type) Data {
-	return typedConstData(constanth.MustConvert(x.UntypedConst(), t))
+	//return typedConstData(constanth.MustConvert(x.UntypedConst(), t))	// does not work for interfaces
+	r, ok := x.Convert(t)
+	if !ok {
+		panic("unable to convert " + x.UntypedConst().String() + " to type " + t.String())
+	}
+	return r
 }
 
 //
 //	untypedBoolData assign & convert
 //
-func (x untypedBoolData) AssignableTo(t reflect.Type) bool { return t.Kind() == reflect.Bool }
+func (x untypedBoolData) AssignableTo(t reflect.Type) bool {
+	return t.Kind() == reflect.Bool || t == reflecth.TypeEmptyInterface()
+}
 func (x untypedBoolData) MustAssign(t reflect.Type) reflect.Value {
 	r, ok := x.Assign(t)
 	if !ok {
@@ -254,11 +292,20 @@ func (x untypedBoolData) MustAssign(t reflect.Type) reflect.Value {
 }
 func (x untypedBoolData) Assign(t reflect.Type) (r reflect.Value, ok bool) {
 	ok = x.AssignableTo(t)
-	if ok {
+	if !ok {
+		return
+	}
+
+	switch t.Kind() {
+	case reflect.Interface:
+		r = reflect.New(t).Elem()
+		r.Set(x.MustAssign(reflecth.TypeBool()))
+		return
+	default: // Kind bool
 		r = reflect.New(t).Elem()
 		r.SetBool(x.UntypedBool())
+		return
 	}
-	return
 }
 func (x untypedBoolData) ConvertibleTo(t reflect.Type) bool { return x.AssignableTo(t) }
 func (x untypedBoolData) MustConvert(t reflect.Type) Data   { return regData(x.MustAssign(t)) }
@@ -311,7 +358,7 @@ func (untypedBoolData) AsInt() (r int, ok bool) { return }
 //func (x untypedBoolData) String() string  { return strconvh.FormatBool(x.UntypedBool()) }
 
 func (nilData) DeepType() string            { return "untyped nil" }
-func (x regData) DeepType() string          { return x.Regular().Type().String() }
+func (x regData) DeepType() string          {return x.Regular().Type().String()}
 func (x typedConstData) DeepType() string   { return x.TypedConst().Type().String() + " constant" }
 func (x untypedConstData) DeepType() string { return "untyped constant" }
 func (x untypedBoolData) DeepType() string  { return "untyped bool" }

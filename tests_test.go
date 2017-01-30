@@ -150,6 +150,10 @@ var (
 	tmp1           = interface{}(strconvh.FormatInt) // because unable get address in one line
 	tmp2           = reflect.Type(nil)
 	tmp3           = myInterface(nil)
+	tmp4           = myInterface(myImplementation{5})
+	tmp5           = interface{}(int8(5))
+	tmp6           = interface{}(5)
+	tmp7           = interface{}(true)
 )
 
 // Required types for tests
@@ -165,9 +169,17 @@ type (
 		s string
 	}
 	myInterface interface {
-		myMethod()
+		MyMethod()
+	}
+	myImplementation struct {
+		X int8
 	}
 )
+
+// Methods for tests
+func (x myImplementation) MyMethod() {
+	x.X++
+}
 
 // Required functions for tests
 func myDiv(k int, x ...int) []int {
@@ -475,6 +487,10 @@ var testsExpr = testExprCatalog{
 		{"uint(int(-1))", nil, nil, true},
 		{"bool(1==2)", nil, MakeDataRegularInterface(false), false},
 		{"str(1==2)", nil, nil, true},
+		{"myInterface(myImplementation{5})", Identifiers{"myInterface": MakeType(reflecth.TypeOfPtr(&tmp4)), "myImplementation": MakeType(reflect.TypeOf(myImplementation{}))}, MakeDataRegular(reflecth.ValueOfPtr(&tmp4)), false},
+		{"interface{}(int8(5))", nil, MakeDataRegular(reflecth.ValueOfPtr(&(tmp5))), false},
+		{"interface{}(5)", nil, MakeDataRegular(reflecth.ValueOfPtr(&(tmp6))), false},
+		{"(interface{})(3>2)", nil, MakeDataRegular(reflecth.ValueOfPtr(&(tmp7))), false},
 	},
 	"star": []testExprElement{
 		{"*v", IdentifiersInterface{"v": new(int8)}.Identifiers(), MakeDataRegularInterface(int8(0)), false},
