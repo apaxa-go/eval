@@ -97,7 +97,7 @@ func (packageVal) implementsValue()     {}
 func MakeType(x reflect.Type) Value                   { return typeVal{x} }
 func MakeTypeInterface(x interface{}) Value           { return MakeType(reflect.TypeOf(x)) }
 func MakeBuiltInFunc(x string) Value                  { return builtInFuncVal(x) }
-func MakePackage(idents Identifiers) Value            { return packageVal(idents) } // keys in idents must not have dots in names
+func MakePackage(idents Args) Value                   { return packageVal(idents) } // keys in args must not have dots in names
 func MakeData(x Data) Value                           { return dataVal{x} }
 func MakeDataNil() Value                              { return MakeData(MakeNil()) }
 func MakeDataRegular(x reflect.Value) Value           { return MakeData(MakeRegular(x)) }

@@ -29,16 +29,16 @@ func (s *SampleInt) Mp(x int16) int32 { return -int32(*s)*int32(x) + 1 }
 func TestSelector(t *testing.T) {
 	type testSelectorElement struct {
 		expr string
-		vars Identifiers
+		vars Args
 		arg  interface{}
 		r    interface{}
 	}
 
 	tests := []testSelectorElement{
-		{"a.M", IdentifiersInterface{"a": SampleStruct{2}}.Identifiers(), uint32(3), uint64(6)},
-		{"b.Mv", IdentifiersInterface{"b": SampleInt(4)}.Identifiers(), int16(5), int32(-20)},
-		{"b.Mv", IdentifiersInterface{"b": new(SampleInt)}.Identifiers(), int16(6), int32(0)},
-		{"b.Mp", IdentifiersInterface{"b": new(SampleInt)}.Identifiers(), int16(7), int32(1)},
+		{"a.M", ArgsFromInterfaces(ArgsI{"a": SampleStruct{2}}), uint32(3), uint64(6)},
+		{"b.Mv", ArgsFromInterfaces(ArgsI{"b": SampleInt(4)}), int16(5), int32(-20)},
+		{"b.Mv", ArgsFromInterfaces(ArgsI{"b": new(SampleInt)}), int16(6), int32(0)},
+		{"b.Mp", ArgsFromInterfaces(ArgsI{"b": new(SampleInt)}), int16(7), int32(1)},
 	}
 
 	for _, v := range tests {
@@ -85,8 +85,8 @@ func TestUnary(t *testing.T) {
 	tmp := SampleStruct{5}
 	tmp2 := []int8{6}
 	tests := []testExprElement{
-		{"&a.F", IdentifiersInterface{"a": &tmp}.Identifiers(), MakeDataRegularInterface(&tmp.F), false},
-		{"&a[0]", IdentifiersInterface{"a": tmp2}.Identifiers(), MakeDataRegularInterface(&tmp2[0]), false},
+		{"&a.F", ArgsFromInterfaces(ArgsI{"a": &tmp}), MakeDataRegularInterface(&tmp.F), false},
+		{"&a[0]", ArgsFromInterfaces(ArgsI{"a": tmp2}), MakeDataRegularInterface(&tmp2[0]), false},
 	}
 
 	for _, v := range tests {
@@ -189,7 +189,7 @@ func TestAstSelectorExpr2(t *testing.T) {
 	if err != nil {
 		t.Fatal("expect no error")
 	}
-	r, err := expr.Eval(Identifiers{"myStruct1": MakeType(reflect.TypeOf(myStruct1{}))})
+	r, err := expr.EvalRaw(Args{"myStruct1": MakeType(reflect.TypeOf(myStruct1{}))})
 	if err != nil || !isValuesEqual(r, testR) {
 		t.Fatalf("expect %v %v, got %v %v", testR, nil, r, err)
 	}
@@ -202,7 +202,7 @@ func TestAstSelectorExpr2(t *testing.T) {
 	if err != nil {
 		t.Fatal("expect no error")
 	}
-	r, err = expr.Eval(Identifiers{"myStruct1": MakeType(reflect.TypeOf(myStruct1{}))})
+	r, err = expr.EvalRaw(Args{"myStruct1": MakeType(reflect.TypeOf(myStruct1{}))})
 	if err != nil || !isValuesEqual(r, testR) {
 		t.Fatalf("expect %v %v, got %v %v", testR, nil, r, err)
 	}

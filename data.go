@@ -15,8 +15,8 @@ type DataKind int
 const (
 	Nil DataKind = iota
 	Regular
-	UntypedConst
 	TypedConst
+	UntypedConst
 	UntypedBool
 )
 

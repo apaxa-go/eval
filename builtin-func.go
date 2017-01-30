@@ -289,9 +289,7 @@ func builtInComplexArgParse(a Data) (r float64, can32, can64 bool) {
 		var ok bool
 		r, ok = constanth.Float64Val(aTC.Untyped())
 		if !ok {
-			// looks like reachable only if typed constant is created by directly accessing private field
-			can32 = false
-			can64 = false
+			can32, can64 = false, false // looks like reachable only if typed constant is created by directly accessing private field
 		}
 		return
 	case UntypedConst:

@@ -16,7 +16,7 @@ func TestValue_String(t *testing.T) {
 		{MakeType(nil), "type value nil"},
 		{MakeType(reflecth.TypeBool()), "type value bool"},
 		{MakeBuiltInFunc("len"), "built-in function value len"},
-		{MakePackage(IdentifiersInterface{"SomeVar": 1}.Identifiers()), "package (exports: SomeVar)"},
+		{MakePackage(ArgsFromInterfaces(ArgsI{"SomeVar": 1})), "package (exports: SomeVar)"},
 	}
 
 	for _, test := range tests {
@@ -35,7 +35,7 @@ func TestValue_Data(t *testing.T) {
 	values := []Value{
 		MakeType(reflecth.TypeBool()),
 		MakeBuiltInFunc("len"),
-		MakePackage(IdentifiersInterface{"SomeVar": 1}.Identifiers()),
+		MakePackage(ArgsFromInterfaces(ArgsI{"SomeVar": 1})),
 	}
 	for _, v := range values {
 		if !depanic(v) {
@@ -53,7 +53,7 @@ func TestValue_Type(t *testing.T) {
 	values := []Value{
 		MakeDataRegularInterface(1),
 		MakeBuiltInFunc("len"),
-		MakePackage(IdentifiersInterface{"SomeVar": 1}.Identifiers()),
+		MakePackage(ArgsFromInterfaces(ArgsI{"SomeVar": 1})),
 	}
 	for _, v := range values {
 		if !depanic(v) {
@@ -71,7 +71,7 @@ func TestValue_BuiltInFunc(t *testing.T) {
 	values := []Value{
 		MakeDataRegularInterface(1),
 		MakeType(reflecth.TypeBool()),
-		MakePackage(IdentifiersInterface{"SomeVar": 1}.Identifiers()),
+		MakePackage(ArgsFromInterfaces(ArgsI{"SomeVar": 1})),
 	}
 	for _, v := range values {
 		if !depanic(v) {
@@ -109,7 +109,7 @@ func TestValue_Interface(t *testing.T) {
 	values := []Value{
 		MakeType(reflecth.TypeBool()),
 		MakeBuiltInFunc("len"),
-		MakePackage(IdentifiersInterface{"SomeVar": 1}.Identifiers()),
+		MakePackage(ArgsFromInterfaces(ArgsI{"SomeVar": 1}.Args()),
 	}
 	for _, v := range values {
 		if !depanic(v) {
@@ -124,7 +124,7 @@ func TestValue_ImplementsValue(t *testing.T) {
 		MakeDataRegularInterface(1),
 		MakeType(reflecth.TypeBool()),
 		MakeBuiltInFunc("len"),
-		MakePackage(IdentifiersInterface{"SomeVar": 1}.Identifiers()),
+		MakePackage(ArgsFromInterfaces(ArgsI{"SomeVar": 1})),
 	}
 	for _, v := range values {
 		v.implementsValue()

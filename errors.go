@@ -287,9 +287,10 @@ func indexOutOfRangeError(i int) *intError {
 func cmpWithNilError(x Data, op token.Token) *intError {
 	return invBinOpError(x.DeepString(), op.String(), "nil", "compare with nil is not defined on "+x.DeepType())
 }
-func invMem(x Value) *intError {
-	return newIntError("invalid memory address or nil pointer dereference (" + x.String() + " is nil)")
-}
+
+//func invMem(x Value) *intError {
+//	return newIntError("invalid memory address or nil pointer dereference (" + x.String() + " is nil)")
+//}
 func constOverflowType(x constant.Value, t reflect.Type) *intError {
 	return newIntError("constant " + x.ExactString() + " overflow " + t.String())
 }
