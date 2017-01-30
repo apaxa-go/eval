@@ -358,7 +358,7 @@ func (untypedBoolData) AsInt() (r int, ok bool) { return }
 //func (x untypedBoolData) String() string  { return strconvh.FormatBool(x.UntypedBool()) }
 
 func (nilData) DeepType() string            { return "untyped nil" }
-func (x regData) DeepType() string          {return x.Regular().Type().String()}
+func (x regData) DeepType() string          { return x.Regular().Type().String() }
 func (x typedConstData) DeepType() string   { return x.TypedConst().Type().String() + " constant" }
 func (x untypedConstData) DeepType() string { return "untyped constant" }
 func (x untypedBoolData) DeepType() string  { return "untyped bool" }

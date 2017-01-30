@@ -16,7 +16,7 @@ func TestCompareOpWithUntypedBool(t *testing.T) {
 
 func TestShiftOp(t *testing.T) {
 	if mathh.IntBits == 32 {
-		if r, err := ShiftOp(MakeRegularInterface(1), token.SHL, MakeTypedConst(constanth.MustMakeTypedValue(constanth.MakeUint64(mathh.MaxUint32+1), reflecth.TypeUint64()))); r != nil || err == nil {
+		if r, err := shiftOp(MakeRegularInterface(1), token.SHL, MakeTypedConst(constanth.MustMakeTypedValue(constanth.MakeUint64(mathh.MaxUint32+1), reflecth.TypeUint64()))); r != nil || err == nil {
 			t.Errorf("expect %v %v, got %v %v", nil, true, r, err)
 		}
 	}

@@ -123,11 +123,11 @@ func (expr *Expression) astBinaryExpr(e *ast.BinaryExpr, idents Identifiers) (r 
 	// Perform calc depending on operation type
 	switch {
 	case tokenh.IsComparison(e.Op):
-		return T(CompareOp(x, e.Op, y)).pos(e)
+		return upT(compareOp(x, e.Op, y)).pos(e)
 	case tokenh.IsShift(e.Op):
-		return T(ShiftOp(x, e.Op, y)).pos(e)
+		return upT(shiftOp(x, e.Op, y)).pos(e)
 	default:
-		return T(BinaryOp(x, e.Op, y)).pos(e)
+		return upT(binaryOp(x, e.Op, y)).pos(e)
 	}
 }
 
@@ -215,7 +215,7 @@ func (expr *Expression) astUnaryExpr(e *ast.UnaryExpr, idents Identifiers) (r Va
 	if err != nil {
 		return
 	}
-	return T(UnaryOp(e.Op, x)).pos(e)
+	return upT(unaryOp(e.Op, x)).pos(e)
 }
 
 func (expr *Expression) astChanType(e *ast.ChanType, idents Identifiers) (r Value, err *posError) {

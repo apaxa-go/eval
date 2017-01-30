@@ -8,7 +8,7 @@ import (
 	"reflect"
 )
 
-func BinaryOp(x Data, op token.Token, y Data) (r Data, err *intError) {
+func binaryOp(x Data, op token.Token, y Data) (r Data, err *intError) {
 	switch xK, yK := x.Kind(), y.Kind(); {
 	case xK == Nil || yK == Nil || xK == UntypedBool || yK == UntypedBool: // This case needed first to prevent other cases to perform.
 		fallthrough
@@ -130,7 +130,7 @@ func compareOpWithUntypedBool(x Data, op token.Token, y bool) (r Data, err *intE
 	return untypedBoolData((xB == y) == equality), nil
 }
 
-func CompareOp(x Data, op token.Token, y Data) (r Data, err *intError) {
+func compareOp(x Data, op token.Token, y Data) (r Data, err *intError) {
 	var rB bool
 	switch xK, yK := x.Kind(), y.Kind(); {
 	case xK == Nil:
@@ -202,7 +202,7 @@ func CompareOp(x Data, op token.Token, y Data) (r Data, err *intError) {
 	return
 }
 
-func ShiftOp(x Data, op token.Token, y Data) (r Data, err *intError) {
+func shiftOp(x Data, op token.Token, y Data) (r Data, err *intError) {
 	// Calc right operand
 	var yUint uint
 	switch y.Kind() {
@@ -269,7 +269,7 @@ func ShiftOp(x Data, op token.Token, y Data) (r Data, err *intError) {
 	return
 }
 
-func UnaryOp(op token.Token, y Data) (r Data, err *intError) {
+func unaryOp(op token.Token, y Data) (r Data, err *intError) {
 	switch y.Kind() {
 	case Regular:
 		r, err = unaryOpRegular(op, y.Regular())

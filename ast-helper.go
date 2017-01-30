@@ -58,7 +58,7 @@ type upTypesT struct {
 	err *intError
 }
 
-func T(d Data, err *intError) upTypesT {
+func upT(d Data, err *intError) upTypesT {
 	return upTypesT{d, err}
 }
 func (u upTypesT) pos(n ast.Node) (r Value, err *posError) {

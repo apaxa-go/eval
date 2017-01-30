@@ -29,9 +29,9 @@ func callBuiltInFunc(f string, args []Value, ellipsis bool) (r Value, err *intEr
 			err = callBuiltInArgsCountMismError(f, 1, len(args))
 			return
 		}
-		return BuiltInNew(args[0])
+		return builtInNew(args[0])
 	case "make":
-		return BuiltInMake(args)
+		return builtInMake(args)
 	}
 
 	// other built-in functions requires only Data, so try to convert args here
@@ -50,43 +50,43 @@ func callBuiltInFunc(f string, args []Value, ellipsis bool) (r Value, err *intEr
 			err = callBuiltInArgsCountMismError(f, 1, len(argsD))
 			return
 		}
-		return BuiltInLen(argsD[0])
+		return builtInLen(argsD[0])
 	case "cap":
 		if len(argsD) != 1 {
 			err = callBuiltInArgsCountMismError(f, 1, len(argsD))
 			return
 		}
-		return BuiltInCap(argsD[0])
+		return builtInCap(argsD[0])
 	case "complex":
 		if len(argsD) != 2 {
 			err = callBuiltInArgsCountMismError(f, 2, len(argsD))
 			return
 		}
-		return BuiltInComplex(argsD[0], argsD[1])
+		return builtInComplex(argsD[0], argsD[1])
 	case "real":
 		if len(argsD) != 1 {
 			err = callBuiltInArgsCountMismError(f, 1, len(argsD))
 			return
 		}
-		return BuiltInReal(argsD[0])
+		return builtInReal(argsD[0])
 	case "imag":
 		if len(argsD) != 1 {
 			err = callBuiltInArgsCountMismError(f, 1, len(argsD))
 			return
 		}
-		return BuiltInImag(argsD[0])
+		return builtInImag(argsD[0])
 	case "append":
 		if len(argsD) < 1 {
 			err = callBuiltInArgsCountMismError(f, 1, len(argsD))
 			return
 		}
-		return BuiltInAppend(argsD[0], argsD[1:], ellipsis)
+		return builtInAppend(argsD[0], argsD[1:], ellipsis)
 	default:
 		return nil, undefIdentError(f)
 	}
 }
 
-func BuiltInNew(t Value) (r Value, err *intError) {
+func builtInNew(t Value) (r Value, err *intError) {
 	const fn = "new"
 	switch t.Kind() {
 	case Type:
@@ -96,7 +96,7 @@ func BuiltInNew(t Value) (r Value, err *intError) {
 	}
 }
 
-func BuiltInMake(v []Value) (r Value, err *intError) {
+func builtInMake(v []Value) (r Value, err *intError) {
 	const fn = "make"
 	if len(v) < 1 || len(v) > 3 {
 		return nil, callBuiltInArgsCountMismError(fn, 1, len(v))
@@ -137,11 +137,11 @@ func BuiltInMake(v []Value) (r Value, err *intError) {
 			return nil, makeNegArgError(t, 1)
 		}
 	}
-	return builtInMake(t, n, m)
+	return builtInMakeParsed(t, n, m)
 }
 
 // n & m must be >=-1. -1 means that args is missing
-func builtInMake(t reflect.Type, n, m int) (r Value, err *intError) {
+func builtInMakeParsed(t reflect.Type, n, m int) (r Value, err *intError) {
 	const fn = "make"
 	switch t.Kind() {
 	case reflect.Slice:
@@ -183,7 +183,7 @@ func builtInLenConstant(v constant.Value) (r Value, err *intError) {
 	return MakeDataTypedConst(constanth.MustMakeTypedValue(constanth.MakeInt(l), reflecth.TypeInt())), nil
 }
 
-func builtInLen(v reflect.Value) (r Value, err *intError) {
+func builtInLenRegular(v reflect.Value) (r Value, err *intError) {
 	const fn = "len"
 	// Resolve pointer to array
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Array {
@@ -202,11 +202,11 @@ func builtInLen(v reflect.Value) (r Value, err *intError) {
 }
 
 //BUG: Not fully following GoLang spec (always returns typed int constant for arrays & pointers to array).
-func BuiltInLen(v Data) (r Value, err *intError) {
+func builtInLen(v Data) (r Value, err *intError) {
 	const fn = "len"
 	switch v.Kind() {
 	case Regular:
-		return builtInLen(v.Regular())
+		return builtInLenRegular(v.Regular())
 	case TypedConst:
 		return builtInLenConstant(v.TypedConst().Untyped())
 	case UntypedConst:
@@ -216,7 +216,7 @@ func BuiltInLen(v Data) (r Value, err *intError) {
 	}
 }
 
-func builtInCap(v reflect.Value) (r Value, err *intError) {
+func builtInCapRegular(v reflect.Value) (r Value, err *intError) {
 	const fn = "cap"
 	// Resolve pointer to array
 	if v.Kind() == reflect.Ptr && v.Elem().Kind() == reflect.Array {
@@ -235,11 +235,11 @@ func builtInCap(v reflect.Value) (r Value, err *intError) {
 }
 
 //BUG: Not fully following GoLang spec (always returns int instead of untyped for array & pointer to array).
-func BuiltInCap(v Data) (r Value, err *intError) {
+func builtInCap(v Data) (r Value, err *intError) {
 	const fn = "cap"
 	switch v.Kind() {
 	case Regular:
-		return builtInCap(v.Regular())
+		return builtInCapRegular(v.Regular())
 	default:
 		return nil, invBuiltInArgError(fn, v)
 	}
@@ -303,7 +303,7 @@ func builtInComplexArgParse(a Data) (r float64, can32, can64 bool) {
 	return 0, false, false
 }
 
-func BuiltInComplex(realPart, imaginaryPart Data) (r Value, err *intError) {
+func builtInComplex(realPart, imaginaryPart Data) (r Value, err *intError) {
 	const fn = "complex"
 	switch reK, imK := realPart.Kind(), imaginaryPart.Kind(); {
 	case reK == UntypedConst && imK == UntypedConst:
@@ -401,7 +401,7 @@ func builtInRealConstant(v constant.Value) (r constant.Value, err *intError) {
 	return rC, nil
 }
 
-func builtInReal(v reflect.Value) (r Value, err *intError) {
+func builtInRealRegular(v reflect.Value) (r Value, err *intError) {
 	const fn = "real"
 	switch v.Kind() {
 	case reflect.Complex64:
@@ -413,11 +413,11 @@ func builtInReal(v reflect.Value) (r Value, err *intError) {
 	}
 }
 
-func BuiltInReal(v Data) (r Value, err *intError) {
+func builtInReal(v Data) (r Value, err *intError) {
 	const fn = "real"
 	switch v.Kind() {
 	case Regular:
-		return builtInReal(v.Regular())
+		return builtInRealRegular(v.Regular())
 	case TypedConst:
 		vTC := v.TypedConst()
 		var rT reflect.Type
@@ -467,7 +467,7 @@ func builtInImagConstant(v constant.Value) (r constant.Value, err *intError) {
 	return rC, nil
 }
 
-func builtInImag(v reflect.Value) (r Value, err *intError) {
+func builtInImagRegular(v reflect.Value) (r Value, err *intError) {
 	const fn = "imag"
 	switch v.Kind() {
 	case reflect.Complex64:
@@ -479,11 +479,11 @@ func builtInImag(v reflect.Value) (r Value, err *intError) {
 	}
 }
 
-func BuiltInImag(v Data) (r Value, err *intError) {
+func builtInImag(v Data) (r Value, err *intError) {
 	const fn = "imag"
 	switch v.Kind() {
 	case Regular:
-		return builtInImag(v.Regular())
+		return builtInImagRegular(v.Regular())
 	case TypedConst:
 		vTC := v.TypedConst()
 		var rT reflect.Type
@@ -521,7 +521,7 @@ func BuiltInImag(v Data) (r Value, err *intError) {
 	}
 }
 
-func BuiltInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
+func builtInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
 	const fn = "append"
 
 	// Check for special case ("append([]byte, string...)")
@@ -530,7 +530,7 @@ func BuiltInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
 		aV, ok := a[0].Assign(reflecth.TypeString())
 		if ok {
 			newA0 := MakeRegularInterface([]byte(aV.String()))
-			return BuiltInAppend(v, []Data{newA0}, true)
+			return builtInAppend(v, []Data{newA0}, true)
 		}
 	}
 
@@ -543,8 +543,8 @@ func BuiltInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
 	}
 
 	elemT := v.Regular().Type().Elem()
-	//var aV []reflect.Value
-	if ellipsis {
+	switch ellipsis {
+	case true:
 		if len(a) != 1 {
 			return nil, callBuiltInArgsCountMismError(fn, 2, 1+len(a))
 		}
@@ -559,7 +559,7 @@ func BuiltInAppend(v Data, a []Data, ellipsis bool) (r Value, err *intError) {
 			return nil, appendMismTypeError(reflect.SliceOf(elemT), a[0])
 		}
 		return MakeDataRegular(reflect.AppendSlice(vV, aV)), nil
-	} else {
+	default: // false
 		aV := make([]reflect.Value, len(a))
 		for i := range a {
 			var ok bool

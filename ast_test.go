@@ -191,19 +191,19 @@ func TestAstSelectorExpr2(t *testing.T) {
 	}
 	r, err := expr.Eval(Identifiers{"myStruct1": MakeType(reflect.TypeOf(myStruct1{}))})
 	if err != nil || !isValuesEqual(r, testR) {
-		t.Fatal("expect %v %v, got %v %v", testR,nil,r,err)
+		t.Fatalf("expect %v %v, got %v %v", testR, nil, r, err)
 	}
 
 	//
 	//
 	//
 	expr, err = ParseString(`myStruct1{1,"str"}`, "github.com/apaxa-go/eval")
-	testR = MakeDataRegularInterface(myStruct1{1,"str"})
+	testR = MakeDataRegularInterface(myStruct1{1, "str"})
 	if err != nil {
 		t.Fatal("expect no error")
 	}
 	r, err = expr.Eval(Identifiers{"myStruct1": MakeType(reflect.TypeOf(myStruct1{}))})
 	if err != nil || !isValuesEqual(r, testR) {
-		t.Fatal("expect %v %v, got %v %v", testR,nil,r,err)
+		t.Fatalf("expect %v %v, got %v %v", testR, nil, r, err)
 	}
 }

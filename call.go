@@ -14,19 +14,15 @@ func callRegular(f reflect.Value, args []Data, ellipsis bool) (r Value, err *int
 		return nil, callResultCountMismError(fT.NumOut())
 	}
 
-	if fT.IsVariadic() {
-		if ellipsis {
-			return callRegularVariadicEllipsis(f, args)
-		} else {
-			return callRegularVariadic(f, args)
-		}
-	} else {
-		if ellipsis {
-			return nil, callRegularWithEllipsisError()
-		} else {
-			return callRegularNonVariadic(f, args)
-		}
+	switch {
+	case fT.IsVariadic() && ellipsis:
+		return callRegularVariadicEllipsis(f, args)
+	case fT.IsVariadic() && !ellipsis:
+		return callRegularVariadic(f, args)
+	case !fT.IsVariadic() && !ellipsis:
+		return callRegularNonVariadic(f, args)
 	}
+	return nil, callRegularWithEllipsisError()
 }
 
 // f must be variadic func with single result (check must perform caller).
