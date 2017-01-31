@@ -139,9 +139,12 @@
 // In most cases EvalToInterface should be enough and it is easy to use.
 //
 // Evaluation performance:
-//	BenchmarkDocParse-8       200000              9118 ns/op            3800 B/op        106 allocs/op
-//	BenchmarkDocEval-8        100000             15559 ns/op            6131 B/op        151 allocs/op
-//	BenchmarkDocGoEval-8     5000000               283 ns/op              72 B/op          3 allocs/op
+//	// Parse expression from string
+//	BenchmarkDocParse-8      200000     9118 ns/op    3800 B/op    106 allocs/op
+//	// Eval already parsed expression
+//	BenchmarkDocEval-8       100000    15559 ns/op    6131 B/op    151 allocs/op
+//	// Eval the same expression by Go
+//	BenchmarkDocGoEval-8    5000000      283 ns/op      72 B/op    3 allocs/op
 //
 // If you found a bug (result of this package evaluation differs from evaluation by Go itself) - please report bug at github.com/apaxa-go/eval.
 package eval
