@@ -126,8 +126,10 @@
 // To create Expression it possible to use MakeExpression or some of Parse* functions.
 // All of them use pkgPath to control access rights.
 // pkgPath used when:
-// 	1. Accessing struct private field. If type of struct belong to pkgPath then all access to struct fields can modify its value (for example, it is possible to set such fields in composite literal).
-// 	2. Creating type in composite literal. All created in expression structures belong to pkgPath.
+//
+// 1. Accessing struct private field. If type of struct belong to pkgPath then all access to struct fields can modify its value (for example, it is possible to set such fields in composite literal).
+//
+// 2. Creating type in composite literal. All created in expression structures belong to pkgPath.
 //
 // When Expression is ready it may be evaluated multiple times. Evaluation done via Eval* methods:
 // 	1. EvalRaw - the most flexible, but the hardest to use,
@@ -141,5 +143,5 @@
 //	BenchmarkDocEval-8        100000             15559 ns/op            6131 B/op        151 allocs/op
 //	BenchmarkDocGoEval-8     5000000               283 ns/op              72 B/op          3 allocs/op
 //
-// If you found a bug (result of this package evaluation differ from evaluation by Go itself) - please report bug at github.com/apaxa-go/eval.
+// If you found a bug (result of this package evaluation differs from evaluation by Go itself) - please report bug at github.com/apaxa-go/eval.
 package eval
