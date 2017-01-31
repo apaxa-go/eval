@@ -10,16 +10,19 @@ import (
 	"reflect"
 )
 
+// DataKind specifies the kind of value represented by a Value.
 type DataKind int
 
+// Possible values for value's kind:
 const (
-	Nil DataKind = iota
-	Regular
-	TypedConst
-	UntypedConst
-	UntypedBool
+	Nil          DataKind = iota // just nil (result of parsing keyword "nil")
+	Regular                      // regular typed variable
+	TypedConst                   // typed constant
+	UntypedConst                 // untyped constant
+	UntypedBool                  // untyped boolean variable
 )
 
+// String returns human readable representation of data's kind.
 func (k DataKind) String() string {
 	switch k {
 	case Nil:
@@ -37,31 +40,62 @@ func (k DataKind) String() string {
 	}
 }
 
+// Data used to store all kind of data passed to/returned from expression.
+// It can stores: nil (keyword "nil"), regular typed variable, typed constant, untyped constant and untyped boolean variable (result of comparison).
+// GoLang valid expression cannot return nil (it is just a keyword), but it is presented here for internal purposes.
 type Data interface {
+	// Kind returns current kind of data represented by a Data.
 	Kind() DataKind
 
+	// Regular returns regular variable (reflect.Value of it) if data stores regular variable, otherwise it panics.
 	Regular() reflect.Value
+	// TypedConst returns typed constant if data stores typed constant, otherwise it panics.
 	TypedConst() constanth.TypedValue
+	// UntypedConst returns untyped constant if data stores untyped constant, otherwise it panics.
 	UntypedConst() constant.Value
+	// UntypedBool returns value of untyped boolean variable if data stores untyped boolean variable, otherwise it panics.
 	UntypedBool() bool
 
+	// IsConst returns true if data stores typed or untyped constant.
 	IsConst() bool
+	// IsTyped returns true if data stores regular typed variable or typed constant.
 	IsTyped() bool
 
+	// AssignableTo reports whether data is assignable to type t.
 	AssignableTo(t reflect.Type) bool
+	// MustAssign creates new variable of type t and sets it to data.
+	// It panics if operation cannot be performed.
 	MustAssign(t reflect.Type) reflect.Value
+	// Assign creates new variable of type t and tries to set it to data.
+	// ok reports whether operation was successful.
 	Assign(t reflect.Type) (r reflect.Value, ok bool)
+	// ConvertibleTo reports whether data is convertible to type t.
 	ConvertibleTo(t reflect.Type) bool
+	// MustConvert converts data to type t.
+	// Original data remains unchanged.
+	// It panics if operation cannot be performed.
 	MustConvert(t reflect.Type) Data
+	// Convert tries to convert data to type t.
+	// Original data remains unchanged.
+	// ok reports whether operation was successful.
 	Convert(t reflect.Type) (r Data, ok bool)
 
-	AsInt() (r int, ok bool) // returns int for Regular of [u]int* kinds (if feats in int) and for constants (if it can be represent exactly; type of const does not mean anything)
-	//ConvertToUint() (r uint, ok bool)
+	// AsInt returns int value for regular variable of [u]int* kinds (if feats in int) and for constants (if it can be represent exactly; type of const does not mean anything).
+	// ok reports whether operation was successful.
+	AsInt() (r int, ok bool)
 
-	//String() string
-	DeepType() string   // example: "untyped constant"
-	DeepValue() string  // example: "1"
-	DeepString() string // <DeepValue> (type <DeepType>)
+	// DeepType returns human readable representation of stored data's type.
+	// Example: "untyped constant".
+	DeepType() string
+	// DeepValue returns human readable representation of stored data's value (without its type).
+	// Example: "1".
+	DeepValue() string
+	// DeepString returns human readable representation of stored data's type and value.
+	// Result is in form of "<DeepValue> (type <DeepType>)".
+	DeepString() string
+
+	// prevent 3rd party classes from implementing Data
+	implementsData()
 }
 
 type (
@@ -348,15 +382,6 @@ func (x untypedConstData) AsInt() (r int, ok bool) {
 }
 func (untypedBoolData) AsInt() (r int, ok bool) { return }
 
-//
-//	string representation
-//
-//func (nilData) String() string            { return "nil" }
-//func (x regData) String() string          { return x.Regular().String() }
-//func (x typedConstData) String() string   { return x.TypedConst().String() }
-//func (x untypedConstData) String() string { return x.UntypedConst().String() }
-//func (x untypedBoolData) String() string  { return strconvh.FormatBool(x.UntypedBool()) }
-
 func (nilData) DeepType() string            { return "untyped nil" }
 func (x regData) DeepType() string          { return x.Regular().Type().String() }
 func (x typedConstData) DeepType() string   { return x.TypedConst().Type().String() + " constant" }
@@ -378,9 +403,30 @@ func (x untypedBoolData) DeepString() string  { return x.DeepValue() + " (type "
 //
 //
 //
-func MakeNil() Data                              { return nilData{} }
-func MakeRegular(x reflect.Value) Data           { return regData(x) }
-func MakeRegularInterface(x interface{}) Data    { return MakeRegular(reflect.ValueOf(x)) }
+func (nilData) implementsData()          {}
+func (regData) implementsData()          {}
+func (typedConstData) implementsData()   {}
+func (untypedConstData) implementsData() {}
+func (untypedBoolData) implementsData()  {}
+
+//
+//
+//
+
+// MakeNil makes Data which stores "nil".
+func MakeNil() Data { return nilData{} }
+
+// MakeRegular makes Data which stores regular typed variable x (x is a reflect.Value of required variable).
+func MakeRegular(x reflect.Value) Data { return regData(x) }
+
+// MakeRegularInterface makes Data which stores regular typed variable x (x is a required variable).
+func MakeRegularInterface(x interface{}) Data { return MakeRegular(reflect.ValueOf(x)) }
+
+// MakeTypedConst makes Data which stores typed constant x.
 func MakeTypedConst(x constanth.TypedValue) Data { return typedConstData(x) }
-func MakeUntypedConst(x constant.Value) Data     { return untypedConstData{x} }
-func MakeUntypedBool(x bool) Data                { return untypedBoolData(x) }
+
+// MakeUntypedConst makes Data which stores untyped constant x.
+func MakeUntypedConst(x constant.Value) Data { return untypedConstData{x} }
+
+// MakeUntypedBool makes Data which stores untyped boolean variable with value x.
+func MakeUntypedBool(x bool) Data { return untypedBoolData(x) }

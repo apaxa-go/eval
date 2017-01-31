@@ -92,7 +92,7 @@ func isValuesEqual(v1, v2 Value) (r bool) {
 		return false
 	}
 	switch v1.Kind() {
-	case KindData:
+	case Datas:
 		return isDatasEqual(v1.Data(), v2.Data())
 	case Type:
 		return v1.Type() == v2.Type()

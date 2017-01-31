@@ -8,11 +8,21 @@ import (
 )
 
 type (
-	Args  map[string]Value
+	// Args represents arguments passed into the expression for evaluation.
+	// It can be nil if no arguments required for evaluation.
+	// Map indexes is the identifiers (possible with short package specification like "strconv.FormatInt" or "mypackage.MySomething", not "github.com/me/mypackage.MySomething").
+	// Map elements is corresponding values. Usually elements is of kind Regular (for typed variables and function), TypedConst (for typed constant) or UntypedConst (for untyped constant). For using function in expression pass it as variable (kind Regular).
+	Args map[string]Value
+	// ArgsI is helper class for ArgsFromInterfaces.
+	// It can be used in composite literal for this function.
 	ArgsI map[string]interface{}
+	// ArgsR is helper class for ArgsFromRegulars.
+	// It can be used in composite literal for this function.
 	ArgsR map[string]reflect.Value
 )
 
+// ArgsFromRegulars converts map[string]reflect.Value to Args (map[string]Value).
+// ArgsR may be useful.
 func ArgsFromRegulars(x map[string]reflect.Value) Args {
 	r := make(Args, len(x))
 	for i := range x {
@@ -20,6 +30,9 @@ func ArgsFromRegulars(x map[string]reflect.Value) Args {
 	}
 	return r
 }
+
+// ArgsFromInterfaces converts map[string]interface{} to Args (map[string]Value).
+// ArgsI may be useful.
 func ArgsFromInterfaces(x map[string]interface{}) Args {
 	r := make(Args, len(x))
 	for i := range x {
@@ -68,7 +81,7 @@ func (args Args) normalize() error {
 // Make all args addressable
 func (args Args) makeAddressable() {
 	for ident, arg := range args {
-		if arg.Kind() != KindData {
+		if arg.Kind() != Datas {
 			continue
 		}
 		if arg.Data().Kind() != Regular {
@@ -92,8 +105,8 @@ func (args Args) validate() error {
 			if arg.Type() == nil {
 				return errors.New(ident + ": invalid type nil")
 			}
-		case KindData:
-			if arg.Kind() == KindData && arg.Data().Kind() == Regular && !arg.Data().Regular().IsValid() {
+		case Datas:
+			if arg.Kind() == Datas && arg.Data().Kind() == Regular && !arg.Data().Regular().IsValid() {
 				return errors.New(ident + ": invalid regular data")
 			}
 		}

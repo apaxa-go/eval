@@ -62,7 +62,7 @@ func (expr *Expression) astSelectorExpr(e *ast.SelectorExpr, args Args) (r Value
 		}
 
 		return
-	case KindData:
+	case Datas:
 		xD := x.Data()
 		if xD.Kind() != Regular {
 			return nil, invSelectorXError(x).pos(e)
@@ -93,9 +93,6 @@ func (expr *Expression) astSelectorExpr(e *ast.SelectorExpr, args Args) (r Value
 		return nil, identUndefinedError("." + name).pos(e)
 	case Type:
 		xT := x.Type()
-		//if xT == nil { // TODO add this check in other places (because reflect.Type is interface and can be nil) ?
-		//	return nil, invMem(x).pos(e)
-		//}
 		if xT.Kind() == reflect.Interface {
 			return nil, interfaceMethodExpr().pos(e) // BUG
 		}
@@ -164,7 +161,7 @@ func (expr *Expression) astCallExpr(e *ast.CallExpr, args Args) (r Value, err *p
 
 	var intErr *intError
 	switch f.Kind() {
-	case KindData:
+	case Datas:
 		fD := f.Data()
 		switch fD.Kind() {
 		case Regular:
@@ -203,7 +200,7 @@ func (expr *Expression) astStarExpr(e *ast.StarExpr, args Args) (r Value, err *p
 	switch {
 	case v.Kind() == Type:
 		return MakeType(reflect.PtrTo(v.Type())), nil
-	case v.Kind() == KindData && v.Data().Kind() == Regular && v.Data().Regular().Kind() == reflect.Ptr:
+	case v.Kind() == Datas && v.Data().Kind() == Regular && v.Data().Regular().Kind() == reflect.Ptr:
 		return MakeDataRegular(v.Data().Regular().Elem()), nil
 	default:
 		return nil, indirectInvalError(v).pos(e)
@@ -676,7 +673,7 @@ func (expr *Expression) astExprAsData(e ast.Expr, args Args) (r Data, err *posEr
 	}
 
 	switch rValue.Kind() {
-	case KindData:
+	case Datas:
 		r = rValue.Data()
 	default:
 		err = notExprError(rValue).pos(e)

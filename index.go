@@ -64,5 +64,5 @@ func indexConstant(x constant.Value, i Data) (r Value, err *intError) {
 
 		return MakeDataUntypedConst(constant.MakeInt64(int64(xStr[iInt]))), nil
 	}
-	return MakeDataRegularInterface(byte(xStr[iInt])), nil
+	return MakeDataRegularInterface(xStr[iInt]), nil
 }

@@ -37,7 +37,7 @@ func callBuiltInFunc(f string, args []Value, ellipsis bool) (r Value, err *intEr
 	// other built-in functions requires only Data, so try to convert args here
 	argsD := make([]Data, len(args))
 	for i := range args {
-		if args[i].Kind() != KindData {
+		if args[i].Kind() != Datas {
 			return nil, notExprError(args[i])
 		}
 		argsD[i] = args[i].Data()
@@ -112,7 +112,7 @@ func builtInMake(v []Value) (r Value, err *intError) {
 	var n, m int = -1, -1
 	switch len(v) {
 	case 3:
-		if v[2].Kind() != KindData {
+		if v[2].Kind() != Datas {
 			return nil, makeNotIntArgError(t, 2, v[2])
 		}
 		var ok bool
@@ -125,7 +125,7 @@ func builtInMake(v []Value) (r Value, err *intError) {
 		}
 		fallthrough
 	case 2:
-		if v[1].Kind() != KindData {
+		if v[1].Kind() != Datas {
 			return nil, makeNotIntArgError(t, 1, v[1])
 		}
 		var ok bool

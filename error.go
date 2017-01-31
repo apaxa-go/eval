@@ -7,13 +7,16 @@ import (
 	"go/token"
 )
 
+// Error is used for all errors related to passed expression.
+// It describes problem (as text) and (in most cases) position of problem.
 type Error struct {
-	msg string
-	pos asth.Position
+	Msg string        // description of problem
+	Pos asth.Position // position of problem
 }
 
+// Error implements standard error interface.
 func (err Error) Error() string {
-	return err.pos.String() + ": " + err.msg
+	return err.Pos.String() + ": " + err.Msg
 }
 
 type posError struct {
@@ -25,7 +28,7 @@ func (err *posError) error(fset *token.FileSet) error {
 	if err == nil {
 		return nil
 	}
-	return Error{msg: err.msg, pos: asth.MakePosition(err.pos, err.end, fset)}
+	return Error{Msg: err.msg, Pos: asth.MakePosition(err.pos, err.end, fset)}
 }
 
 type intError string

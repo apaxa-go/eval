@@ -61,7 +61,7 @@ func TestSelector(t *testing.T) {
 			continue
 		}
 
-		if r.Kind() != KindData || r.Data().Kind() != Regular || r.Data().Regular().Kind() != reflect.Func {
+		if r.Kind() != Datas || r.Data().Kind() != Regular || r.Data().Regular().Kind() != reflect.Func {
 			t.Errorf("expect function, got %v", r.String())
 			continue
 		}
