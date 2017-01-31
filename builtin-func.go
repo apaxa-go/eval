@@ -140,6 +140,8 @@ func builtInMake(v []Value) (r Value, err *intError) {
 	return builtInMakeParsed(t, n, m)
 }
 
+// BUG(a.bekker): make(<map>,n) ignore n (but check it type).
+
 // n & m must be >=-1. -1 means that args is missing
 func builtInMakeParsed(t reflect.Type, n, m int) (r Value, err *intError) {
 	const fn = "make"
@@ -156,7 +158,6 @@ func builtInMakeParsed(t reflect.Type, n, m int) (r Value, err *intError) {
 		}
 		return MakeDataRegular(reflect.MakeSlice(t, n, m)), nil
 	case reflect.Map:
-		// BUG make(<map>,n) ignore n (but check it type).
 		if m != -1 {
 			return nil, callBuiltInArgsCountMismError(fn, 2, 3)
 		}
@@ -201,7 +202,8 @@ func builtInLenRegular(v reflect.Value) (r Value, err *intError) {
 	}
 }
 
-//BUG: Not fully following GoLang spec (always returns typed int constant for arrays & pointers to array).
+// BUG(a.bekker): Builtin function len does not fully following GoLang spec (it always returns typed int constant for arrays & pointers to array).
+
 func builtInLen(v Data) (r Value, err *intError) {
 	const fn = "len"
 	switch v.Kind() {
@@ -234,7 +236,8 @@ func builtInCapRegular(v reflect.Value) (r Value, err *intError) {
 	}
 }
 
-//BUG: Not fully following GoLang spec (always returns int instead of untyped for array & pointer to array).
+// BUG(a.bekker): Builtin cap does not fully following GoLang spec (always returns int instead of untyped for array & pointer to array).
+
 func builtInCap(v Data) (r Value, err *intError) {
 	const fn = "cap"
 	switch v.Kind() {

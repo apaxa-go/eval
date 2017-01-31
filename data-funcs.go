@@ -274,9 +274,9 @@ func unaryOp(op token.Token, y Data) (r Data, err *intError) {
 	case Regular:
 		r, err = unaryOpRegular(op, y.Regular())
 	case TypedConst:
-		r, err = unaryOpTypedConst(op, y.TypedConst(), 0) // BUG prec should be set?
+		r, err = unaryOpTypedConst(op, y.TypedConst(), 0) // TODO prec should be set?
 	case UntypedConst:
-		r, err = unaryOpUntypedConst(op, y.UntypedConst(), 0) // BUG prec should be set?
+		r, err = unaryOpUntypedConst(op, y.UntypedConst(), 0) // TODO prec should be set?
 	case UntypedBool:
 		switch op {
 		case token.NOT:
