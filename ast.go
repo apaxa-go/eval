@@ -588,6 +588,8 @@ func (expr *Expression) astMapType(e *ast.MapType, args Args) (r Value, err *pos
 	return
 }
 
+// BUG(a.bekker): Eval* currently does not generate wrapper methods for embedded fields (see reflect.StructOf for more details).
+
 func (expr *Expression) astStructType(e *ast.StructType, args Args) (r Value, err *posError) {
 	// Looks like e.Incomplete does not mean anything in our case.
 	if e.Fields == nil {
@@ -648,7 +650,6 @@ func (expr *Expression) astStructType(e *ast.StructType, args Args) (r Value, er
 			err = newIntError(fmt.Sprint(rec)).pos(e)
 		}
 	}()
-	// BUG StructOf currently does not generate wrapper methods for embedded fields. This limitation may be lifted in a future version. (see reflect.StructOf)
 	r = MakeType(reflect.StructOf(fields))
 	return
 }

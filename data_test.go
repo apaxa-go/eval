@@ -248,3 +248,16 @@ func TestData_AsInt(t *testing.T) {
 		}
 	}
 }
+
+func TestData_ImplementsData(t *testing.T) {
+	datas := []Data{
+		MakeNil(),
+		MakeRegularInterface(1),
+		MakeTypedConst(constanth.MustMakeTypedValue(constanth.MakeInt(100), reflecth.TypeInt())),
+		MakeUntypedConst(constanth.MakeUint64(mathh.MaxInt64 + 1)),
+		MakeUntypedBool(true),
+	}
+	for _, d := range datas {
+		d.implementsData()
+	}
+}

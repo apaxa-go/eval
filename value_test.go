@@ -98,27 +98,6 @@ func TestValue_Package(t *testing.T) {
 	}
 }
 
-/*
-
-func TestValue_Interface(t *testing.T) {
-	depanic := func(x Value) (panic bool) {
-		defer func() { panic = recover() != nil }()
-		_ = x.I
-		return
-	}
-	values := []Value{
-		MakeType(reflecth.TypeBool()),
-		MakeBuiltInFunc("len"),
-		MakePackage(ArgsFromInterfaces(ArgsI{"SomeVar": 1}.Args()),
-	}
-	for _, v := range values {
-		if !depanic(v) {
-			t.Errorf("%v: expect panic", v)
-		}
-	}
-}
-*/
-
 func TestValue_ImplementsValue(t *testing.T) {
 	values := []Value{
 		MakeDataRegularInterface(1),
