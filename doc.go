@@ -1,11 +1,14 @@
 // Package eval implements evaluation of GoLang expression at runtime.
 //
 // Requirements for expression:
+//
 // 1. expression itself and all of subexpression must return exactly one value,
 // 2. see Bugs section for other requirements/restrictions.
 //
 // What does supported:
+//
 // 1. types (by passing predefined/custom types and by defining unnamed types in expression itself),
+//
 // 2. named arguments (regular variables, typed & untyped constants, untyped boolean variable),
 // 3. "package.SomeThing" notation,
 // 4. evaluate expression as if it is evaluates in specified package (even write access to private fields),
