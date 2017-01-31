@@ -236,7 +236,7 @@ func builtInCapRegular(v reflect.Value) (r Value, err *intError) {
 	}
 }
 
-// BUG(a.bekker): Builtin cap does not fully following GoLang spec (always returns int instead of untyped for array & pointer to array).
+// BUG(a.bekker): Builtin function cap does not fully following GoLang spec (always returns int instead of untyped for array & pointer to array).
 
 func builtInCap(v Data) (r Value, err *intError) {
 	const fn = "cap"
