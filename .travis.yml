@@ -20,6 +20,7 @@ before_install:
   - export GOARCH=$GO_ARCH
   - export PATH=$PATH:$GOPATH/bin/:$GOPATH/bin/${GOOS}_$GOARCH/
   - go env
+  - echo $GOOS
   - echo $PATH
   - go get github.com/mattn/goveralls
 script:
