@@ -17,8 +17,8 @@ matrix:
   exclude:
     - os: osx
       env: GO_ARCH=386
-    - os: osx
-      env: GO_OS=windows
+      env: GO_OS=windows GO_ARCH=amd64
+      env: GO_OS=windows GO_ARCH=386
   allow_failures:
       - go: master
 before_install:
