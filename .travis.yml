@@ -28,7 +28,7 @@ before_install:
   - export PATH=${PATH}:${GOPATH}/bin/:${GOPATH}/bin/`go env GOOS`_`go env GOARCH`/
   - go env
   - export
-  - go get github.com/mattn/goveralls
+  - if [[ "$GOOS" != "windows" ]]; then go get github.com/mattn/goveralls; fi
 script:
   - if [[ "$GOOS" == "windows" ]]; then go build -v; fi
   - if [[ "$GOOS" != "windows" ]]; then goveralls -service travis-ci; fi
