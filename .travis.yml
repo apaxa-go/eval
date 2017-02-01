@@ -11,16 +11,21 @@ go:
 env:
   - GO_ARCH=amd64
   - GO_ARCH=386
+  - GO_OS=windows GO_ARCH=amd64
+  - GO_OS=windows GO_ARCH=386
 matrix:
   exclude:
     - os: osx
       env: GO_ARCH=386
+    - os: osx
+      env: GO_OS=windows
   allow_failures:
       - go: master
 before_install:
   - export GOARCH=$GO_ARCH
-  - export GOOS=`go env GOOS`
-  - export PATH=${PATH}:${GOPATH}/bin/:${GOPATH}/bin/${GOOS}_${GOARCH}/
+  - export GOOS=$GO_OS
+  #- export GOOS=`go env GOOS`
+  - export PATH=${PATH}:${GOPATH}/bin/:${GOPATH}/bin/`go env GOOS`_`go env GOARCH`/
   - go env
   - export
   - go get github.com/mattn/goveralls
