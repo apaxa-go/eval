@@ -30,5 +30,5 @@ before_install:
   - export
   - go get github.com/mattn/goveralls
 script:
-  - if [[ "$GOOS" == "windows" ]]; then ; go build -v; fi
+  - if [[ "$GOOS" == "windows" ]]; then go build -v; fi
   - if [[ "$GOOS" != "windows" ]]; then goveralls -service travis-ci; fi
