@@ -18,7 +18,7 @@ matrix:
       - go: master
 before_install:
   - export GOARCH=$GO_ARCH
-  - export PATH=$PATH:$GOPATH/bin/:$GOPATH/bin/$GOOS_$GOARCH/
+  - export PATH=$PATH:$GOPATH/bin/:$GOPATH/bin/${GOOS}_$GOARCH/
   - go env
   - echo $PATH
   - go get github.com/mattn/goveralls
