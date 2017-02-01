@@ -81,7 +81,7 @@
 //		c := make(chan int64, 10)
 //		c <- 2
 //
-//		src := `exampleString(fmt.Sprint(interface{}(math.MaxInt64/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."`
+//		src := `exampleString(fmt.Sprint(interface{}(math.MaxInt32/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."`
 //
 //		expr, err := ParseString(src, "")
 //		if err != nil {
@@ -90,7 +90,7 @@
 //		a := Args{
 //			"exampleString": MakeTypeInterface(exampleString("")),
 //			"fmt.Sprint":    MakeDataRegularInterface(fmt.Sprint),
-//			"math.MaxInt64": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt64)),
+//			"math.MaxInt32": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt32)),
 //			"exampleStruct": MakeTypeInterface(exampleStruct{}),
 //			"c":             MakeDataRegularInterface(c),
 //		}
@@ -101,12 +101,12 @@
 //		if r != testR {
 //			return
 //		}
-//		fmt.Printf("%v %T\n", r, r)	// "!!1152921504606846877!!. exampleString"
+//		fmt.Printf("%v %T\n", r, r)	// "!!268435357!!. eval.exampleString"
 //		return
 //	}
 //
 // Example with error in expression:
-//	src := `exampleString(fmt.Sprint(interface{}(math.MaxInt64/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."`
+//	src := `exampleString(fmt.Sprint(interface{}(math.MaxInt32/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."`
 //	expr, err := ParseString(src, "")
 //	if err != nil {
 //		t.Error(err)
@@ -114,7 +114,7 @@
 //	a := Args{
 //		"exampleString": MakeTypeInterface(exampleString("")),
 //		"fmt.Sprint":    MakeDataRegularInterface(fmt.Sprint),
-//		"math.MaxInt64": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt64)),
+//		"math.MaxInt32": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt32)),
 //		"exampleStruct": MakeTypeInterface(exampleStruct{}),
 //		// Remove "c" from passed arguments:
 //		// "c":             MakeDataRegularInterface(c),

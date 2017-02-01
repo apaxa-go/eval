@@ -7,8 +7,8 @@ import (
 	"testing"
 )
 
-const exampleBenchSrc = `exampleString(fmt.Sprint(interface{}(math.MaxInt64/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(2)-cap(make([]string, 1, 100))))).String().String() + "."`
-const exampleBenchResult exampleString = "!!1152921504606846877!!."
+const exampleBenchSrc = `exampleString(fmt.Sprint(interface{}(math.MaxInt32/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(2)-cap(make([]string, 1, 100))))).String().String() + "."`
+const exampleBenchResult exampleString = "!!268435357!!."
 
 func TestDocSimpleExample(t *testing.T) {
 	src := "int8(1*(1+2))"
@@ -40,8 +40,8 @@ func TestDocComplicatedExample(t *testing.T) {
 	c <- 2
 	c <- 2
 
-	testR := exampleString(fmt.Sprint(interface{}(math.MaxInt64/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."
-	src := `exampleString(fmt.Sprint(interface{}(math.MaxInt64/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."`
+	testR := exampleString(fmt.Sprint(interface{}(math.MaxInt32/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."
+	src := `exampleString(fmt.Sprint(interface{}(math.MaxInt32/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."`
 	expr, err := ParseString(src, "")
 	if err != nil {
 		t.Error(err)
@@ -49,7 +49,7 @@ func TestDocComplicatedExample(t *testing.T) {
 	a := Args{
 		"exampleString": MakeTypeInterface(exampleString("")),
 		"fmt.Sprint":    MakeDataRegularInterface(fmt.Sprint),
-		"math.MaxInt64": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt64)),
+		"math.MaxInt32": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt32)),
 		"exampleStruct": MakeTypeInterface(exampleStruct{}),
 		"c":             MakeDataRegularInterface(c),
 	}
@@ -60,11 +60,11 @@ func TestDocComplicatedExample(t *testing.T) {
 	if r != testR {
 		t.Errorf("expect %v, got %v", testR, r)
 	}
-	//fmt.Printf("%v %T\n", r, r)
+	fmt.Printf("%v %T\n", r, r)
 }
 
 func TestDocErrorExample(t *testing.T) {
-	src := `exampleString(fmt.Sprint(interface{}(math.MaxInt64/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."`
+	src := `exampleString(fmt.Sprint(interface{}(math.MaxInt32/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(<-(<-chan int64)(c))-cap(make([]string, 1, 100))))).String().String() + "."`
 	expr, err := ParseString(src, "")
 	if err != nil {
 		t.Error(err)
@@ -72,7 +72,7 @@ func TestDocErrorExample(t *testing.T) {
 	a := Args{
 		"exampleString": MakeTypeInterface(exampleString("")),
 		"fmt.Sprint":    MakeDataRegularInterface(fmt.Sprint),
-		"math.MaxInt64": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt64)),
+		"math.MaxInt32": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt32)),
 		"exampleStruct": MakeTypeInterface(exampleStruct{}),
 		// Remove "c" from passed arguments:
 		// "c":             MakeDataRegularInterface(c),
@@ -81,7 +81,7 @@ func TestDocErrorExample(t *testing.T) {
 	if err == nil {
 		t.Error("expect error")
 	}
-	//fmt.Println(err)
+	fmt.Println(err)
 }
 
 func BenchmarkDocParse(b *testing.B) {
@@ -103,7 +103,7 @@ func BenchmarkDocEval(b *testing.B) {
 		a := Args{
 			"exampleString": MakeTypeInterface(exampleString("")),
 			"fmt.Sprint":    MakeDataRegularInterface(fmt.Sprint),
-			"math.MaxInt64": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt64)),
+			"math.MaxInt32": MakeDataUntypedConst(constanth.MakeUint(math.MaxInt32)),
 			"exampleStruct": MakeTypeInterface(exampleStruct{}),
 		}
 		r, err := expr.EvalToInterface(a)
@@ -111,16 +111,16 @@ func BenchmarkDocEval(b *testing.B) {
 			b.Fatal(err)
 		}
 		if r != exampleBenchResult {
-			b.Fatal("expect %v, got %v", exampleBenchResult, r)
+			b.Fatalf("expect %v, got %v", exampleBenchResult, r)
 		}
 	}
 }
 
 func BenchmarkDocGoEval(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		r := exampleString(fmt.Sprint(interface{}(math.MaxInt64/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(2)-cap(make([]string, 1, 100))))).String().String() + "."
+		r := exampleString(fmt.Sprint(interface{}(math.MaxInt32/exampleStruct(struct{ A, B int }{3, 5}).Sum()+int(2)-cap(make([]string, 1, 100))))).String().String() + "."
 		if r != exampleBenchResult {
-			b.Fatal("expect %v, got %v", exampleBenchResult, r)
+			b.Fatalf("expect %v, got %v", exampleBenchResult, r)
 		}
 	}
 }

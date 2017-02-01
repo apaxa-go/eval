@@ -21,9 +21,7 @@ before_install:
   - export GOOS=`go env GOOS`
   - export PATH=${PATH}:${GOPATH}/bin/:${GOPATH}/bin/${GOOS}_${GOARCH}/
   - go env
-  - echo $GOOS
-  - echo $PATH
+  - export
   - go get github.com/mattn/goveralls
 script:
-  - find /home/travis/gopath/bin
   - goveralls -service travis-ci
