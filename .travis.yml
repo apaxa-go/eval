@@ -3,6 +3,7 @@ sudo: false
 os:
   - linux
   - osx
+  - windows
 go:
   - 1.x
   - 1.7.x
@@ -14,10 +15,6 @@ matrix:
   exclude:
     - os: osx
       env: GO_ARCH=386
-  include:
-    - os: linux
-      env: GO_ARCH=386
-      env: GO_OS=windows
   allow_failures:
       - go: master
 before_install:
