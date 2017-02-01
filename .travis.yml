@@ -20,4 +20,5 @@ before_install:
   - export GOARCH=$GO_ARCH
   - go get github.com/mattn/goveralls
 script:
+  - find /home/travis/gopath/bin
   - $HOME/gopath/bin/goveralls -service travis-ci
