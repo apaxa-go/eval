@@ -7,6 +7,15 @@
 
 Package eval implements evaluation of GoLang expression at runtime.
 
+#**THIS LIB NO MORE MAINTAINED!**
+
+# For whose who wants to implement golang eval
+Suggestions:
+1. Implement 2-steps algorithm: first step - analogue of golang compilation (resolve all types; compute all constants; convert all untyped constant and untyped variables to typed; also simplify AST tree here / convert to your own format), second step - analogue of golang runtime (here will be passed values of external variables and computed final result). 
+2. You need to use golang eval package, but keep in mind that it can simplify break your lib on update (golang's backward compatibility does not save you).
+3. Follow language specification (it is hard to implement some additional custom behaviour without breaking compatibility with language accepted expressions).
+4. Language specification may omit some details (so also test with golang compiler).
+
 # Requirements for expression:
 1. expression itself and all of subexpression must return exactly one value,
 2. see documentation Bugs section for other requirements/restrictions.
